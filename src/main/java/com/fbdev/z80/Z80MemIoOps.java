@@ -22,9 +22,13 @@ package com.fbdev.z80;
 import com.fbdev.model.BaseBusProvider;
 import com.fbdev.util.Size;
 import com.fbdev.util.Util;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import z80core.IMemIoOps;
 
 public class Z80MemIoOps implements IMemIoOps {
+
+    private final static Logger LOG = LogManager.getLogger(Z80MemIoOps.class.getSimpleName());
 
     private BaseBusProvider z80BusProvider;
     private long tstatesCount = 0;
@@ -135,8 +139,10 @@ public class Z80MemIoOps implements IMemIoOps {
     @Override
     public void outPort(int port, int value) {
         tstatesCount += 4;
-        z80BusProvider.writeIoPort(port, value);
+        z80BusProvider.writeIoPort(port & 0xFF, value);
         forceAddressOnBus = value;
+        LOG.info("forceAddressOnBus: {}, port: {}",
+                Integer.toHexString(forceAddressOnBus), Integer.toHexString(port & 0xFF));
     }
 
     @Override

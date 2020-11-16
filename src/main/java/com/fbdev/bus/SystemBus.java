@@ -1,13 +1,11 @@
 package com.fbdev.bus;
 
+import com.fbdev.Video;
 import com.fbdev.model.BaseBusProvider;
+import com.fbdev.util.RomHelper;
 import com.fbdev.util.Size;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 /**
  * Federico Berti
@@ -19,36 +17,24 @@ public class SystemBus implements BaseBusProvider {
     private final static Logger LOG = LogManager.getLogger(SystemBus.class.getSimpleName());
 
     private final static int ROM_START = 0x0000;
-    private final static int ROM_LENGTH = 0x4000;
+    public final static int ROM_LENGTH = 0x4000;
 
     private final static int RAM_START = 0x4000;
     public final static int RAM_END = RAM_START + 0x1000;
 
     private final static int IO_START = 0x5000;
     private final static int IO_END = IO_START + 0x100;
+
     public static boolean enableInt = false;
-    private static byte[] rom = new byte[ROM_LENGTH];
-    private static byte[] ram = new byte[RAM_END - RAM_START];
+
+    private Video video;
+    private byte[] rom, ram;
     private int intHandlerLowByte = 0;
 
     public SystemBus() {
-        loadRom();
-    }
-
-    private static void loadRom() {
-        try {
-            byte[] r6e = Files.readAllBytes(Paths.get("./data", "pacman.6e"));
-            byte[] r6f = Files.readAllBytes(Paths.get("./data", "pacman.6f"));
-            byte[] r6h = Files.readAllBytes(Paths.get("./data", "pacman.6h"));
-            byte[] r6j = Files.readAllBytes(Paths.get("./data", "pacman.6j"));
-            System.arraycopy(r6e, 0, rom, 0, r6e.length);
-            System.arraycopy(r6f, 0, rom, 0x1000, r6f.length);
-            System.arraycopy(r6h, 0, rom, 0x2000, r6h.length);
-            System.arraycopy(r6j, 0, rom, 0x3000, r6j.length);
-        } catch (IOException e) {
-            e.printStackTrace();
-            LOG.error(e);
-        }
+        this.rom = RomHelper.getInstance().getRom();
+        this.ram = new byte[RAM_END - RAM_START];
+        this.video = new Video(RomHelper.getInstance());
     }
 
     @Override
@@ -94,7 +80,7 @@ public class SystemBus implements BaseBusProvider {
                     Long.toHexString(dataL), size);
             throw new RuntimeException();
         }
-        int address = (int) addressL;
+        int address = (int) addressL & 0x7FFF;
         byte data = (byte) (dataL & 0xFF);
         if (address >= RAM_START && address < RAM_END) {
             ram[address - RAM_START] = data;
@@ -111,38 +97,43 @@ public class SystemBus implements BaseBusProvider {
         address &= 0xFF;
         switch (address) {
             case 0:
-                LOG.info("Interrupt enable: {}", Integer.toHexString(data));
+                LOG.info("Write Interrupt enable: {}", Integer.toHexString(data));
                 enableInt = data != 0;
                 break;
             case 1:
-                LOG.info("Sound enable: {}", Integer.toHexString(data));
+                LOG.info("Write Sound enable: {}", Integer.toHexString(data));
                 break;
             case 2:
-                LOG.info("Aux board enable: {}", Integer.toHexString(data));
+                LOG.info("Write Aux board enable: {}", Integer.toHexString(data));
                 break;
             case 3:
-                LOG.info("Flip screen: {}", Integer.toHexString(data));
+                LOG.info("Write Flip screen: {}", Integer.toHexString(data));
                 break;
             case 4:
-                LOG.info("Player 1 start light : {}", Integer.toHexString(data));
+                LOG.info("Write Player 1 start light : {}", Integer.toHexString(data));
                 break;
             case 5:
-                LOG.info("Player 2 start light : {}", Integer.toHexString(data));
+                LOG.info("Write Player 2 start light : {}", Integer.toHexString(data));
                 break;
             case 6:
-                LOG.info("Coin lockout : {}", Integer.toHexString(data));
+                LOG.info("Write Coin lockout : {}", Integer.toHexString(data));
                 break;
             case 7:
-                LOG.info("Coin counter : {}", Integer.toHexString(data));
+                LOG.info("Write Coin counter : {}", Integer.toHexString(data));
                 break;
             default:
                 if (address >= 0x40 && address < 0x60) {
-                    LOG.info("Sound register {} : {}", Integer.toHexString(address & 0x5f), Integer.toHexString(data));
+                    LOG.info("Write Sound register {} : {}", Integer.toHexString(address),
+                            Integer.toHexString(data));
                 } else if (address >= 0xC0) {
-                    LOG.info("Watchdog reset : {}", Integer.toHexString(data));
+                    LOG.info("Write Watchdog reset : {}", Integer.toHexString(data));
+                } else if (address >= 0x60 && address < 0x80) { //TODO check 0x70 - 0x80 range
+                    LOG.info("Write Sprite x, y coordinates: {}, {}", Integer.toHexString(address),
+                            Integer.toHexString(data));
                 } else {
-                    LOG.warn("Unsupported IO write at {}, {} {}", Long.toHexString(address),
+                    LOG.warn("Unsupported IO write at 50{}, {} {}", Long.toHexString(address),
                             Long.toHexString(data), size);
+//                    Main.verbose = true;
                     throw new RuntimeException();
                 }
         }
@@ -153,9 +144,9 @@ public class SystemBus implements BaseBusProvider {
     public void writeIoPort(int port, int value) {
         if ((port & 0xFF) == 0) {
             intHandlerLowByte = value;
-            LOG.info("Interrupt handler low byte: {}", Integer.toHexString(intHandlerLowByte));
+            LOG.info("Write Interrupt handler low byte: {}", Integer.toHexString(intHandlerLowByte));
         } else {
-            LOG.error("Invalid write at port {}, {}", Long.toHexString(port), Long.toHexString(value));
+            LOG.error("Write Invalid write at port {}, {}", Long.toHexString(port), Long.toHexString(value));
             throw new RuntimeException();
         }
     }
