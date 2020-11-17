@@ -1,4 +1,4 @@
-package com.fbdev.util;
+package com.fbdev.ui.debug;
 
 /**
  * Federico Berti
@@ -18,6 +18,8 @@ public class TileRomViewer extends BaseViewer {
 
     private static final Logger LOG = LogManager.getLogger(TileRomViewer.class.getSimpleName());
 
+    private static int SCALE = 2;
+
     private byte[] tilerom;
     private Color[] palColors;
 
@@ -29,12 +31,15 @@ public class TileRomViewer extends BaseViewer {
         for (int i = 0; i < idx.length; i++) {
             palColors[i] = allColors[idx[i]];
         }
+        initPanel();
     }
 
     private static GridContext getGridContext() {
         GridContext gc = new GridContext();
         gc.entries = 256;
-        gc.rows = 16;
+        gc.rows = 8;
+        gc.panelWidth = 8 * SCALE * (gc.entries / gc.rows) + 100;
+        gc.panelHeight = gc.panelWidth / 2 + 50;
         gc.title = "Tile ROM Viewer (palette #1)";
         return gc;
     }
@@ -51,7 +56,7 @@ public class TileRomViewer extends BaseViewer {
                     for (int i = 0; i < pixels.length; i++) {
                         bi.setRGB(i % 8, i / 8, palColors[pixels[i]].getRGB());
                     }
-                    panelList[k].add(new JLabel(image));
+                    panelList[k].add(getLabelScaled(bi, 2));
                 }
             } catch (Exception | Error e) {
                 e.printStackTrace();

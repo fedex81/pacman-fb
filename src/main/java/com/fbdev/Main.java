@@ -26,6 +26,7 @@ public class Main {
     private static Z80Dasm z80Dasm = new Z80Dasm();
     private static IMemIoOps memIoOps;
     private static Z80 z80;
+    private static SystemBus bus;
 
     private static int Z80_CLOCK_HZ = 3_072_000;
     private static int Z80_CYCLES_PER_FRAME = Z80_CLOCK_HZ / 60;
@@ -33,7 +34,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         RomHelper.init();
-        memIoOps = getMemIoOps();
+        bus = new SystemBus();
+        memIoOps = Z80MemIoOps.createInstance(bus);
         z80 = new Z80(memIoOps, null);
         z80.setRegPC(0);
         z80.setRegSP(SystemBus.RAM_END);
@@ -50,9 +52,14 @@ public class Main {
                     LOG.info("interrupt");
                     z80.setINTLine(true);
                 }
-//                if(frameCounter > 600){
+                bus.newFrame();
+                Util.sleep(17);
+                if (frameCounter % 60 == 0) {
+                    LOG.info("1sec");
+                    System.out.println("1sec");
 //                    break;
-//                }
+                }
+
             }
         } while (true);
     }
@@ -63,7 +70,6 @@ public class Main {
             z80.execute();
         } catch (Exception | Error e) {
             LOG.error("z80 exception", e);
-//            LOG.error("Z80State: {}", Z80Helper.toString(z80.getZ80State()));
             printDbg();
             LOG.error("Halting Z80");
             z80.setHalted(true);
@@ -81,11 +87,5 @@ public class Main {
     private static void printDbg() {
         LOG.info("\n===> {}\n{}", Z80Helper.dumpInfo(z80Dasm, memIoOps, z80.getRegPC()),
                 Z80Helper.toString(z80.getZ80State()));
-    }
-
-    private static IMemIoOps getMemIoOps() {
-        SystemBus bus = new SystemBus();
-        Z80MemIoOps memIoOps = Z80MemIoOps.createInstance(bus);
-        return memIoOps;
     }
 }

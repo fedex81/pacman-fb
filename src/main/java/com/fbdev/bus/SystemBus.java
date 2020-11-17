@@ -1,6 +1,7 @@
 package com.fbdev.bus;
 
 import com.fbdev.Video;
+import com.fbdev.input.PacManPad;
 import com.fbdev.model.BaseBusProvider;
 import com.fbdev.util.RomHelper;
 import com.fbdev.util.Size;
@@ -30,11 +31,14 @@ public class SystemBus implements BaseBusProvider {
     private Video video;
     private byte[] rom, ram;
     private int intHandlerLowByte = 0;
+    private PacManPad joypadProvider;
 
     public SystemBus() {
         this.rom = RomHelper.getInstance().getRom();
         this.ram = new byte[RAM_END - RAM_START];
-        this.video = new Video(RomHelper.getInstance());
+        joypadProvider = new PacManPad();
+        joypadProvider.init();
+        this.video = new Video(RomHelper.getInstance(), ram, joypadProvider);
     }
 
     @Override
@@ -54,15 +58,18 @@ public class SystemBus implements BaseBusProvider {
             LOG.error("Invalid read {}, {}", Long.toHexString(address), size);
             throw new RuntimeException();
         }
-//                return 0xFF;
     }
 
     private int readIoHandler(int address, Size size) {
         address &= 0xFF;
         if (address < 0x40) {
-            LOG.info("Read IN0 port: {}", size);
+            int res = joypadProvider.getIn0();
+//            LOG.info("Read IN0 port: {}", Integer.toHexString(res));
+            return res;
         } else if (address < 0x80) {
-            LOG.info("Read IN1 port: {}", size);
+            int res = joypadProvider.getIn1();
+            LOG.info("Read IN1 port: {}", Integer.toHexString(res));
+            return res;
         } else if (address < 0xC0) {
             LOG.info("Read DIP switch settings port: {}", size);
             return 0; //free play - 1 life
@@ -70,7 +77,6 @@ public class SystemBus implements BaseBusProvider {
             LOG.warn("Unsupported IO read {}, {}", Long.toHexString(address), size);
             throw new RuntimeException();
         }
-        return 0xFF;
     }
 
     @Override
@@ -83,6 +89,13 @@ public class SystemBus implements BaseBusProvider {
         int address = (int) addressL & 0x7FFF;
         byte data = (byte) (dataL & 0xFF);
         if (address >= RAM_START && address < RAM_END) {
+            if (address < 0x4400) { //tile ram
+                int offset = address & 0x3FF;
+                LOG.debug("Draw tile #{} at position: {}, using palette: {}", data, offset,
+                        ram[0x400 + offset] & 0xFF);
+            } else if (address >= 0x4ff0) {
+                LOG.debug("Write to sprite RAM: {}, {}", Integer.toHexString(address), Integer.toHexString(data));
+            }
             ram[address - RAM_START] = data;
         } else if (address >= IO_START && address < IO_END) {
             writeIoHandler(address, data, size);
@@ -97,38 +110,38 @@ public class SystemBus implements BaseBusProvider {
         address &= 0xFF;
         switch (address) {
             case 0:
-                LOG.info("Write Interrupt enable: {}", Integer.toHexString(data));
+                LOG.debug("Write Interrupt enable: {}", Integer.toHexString(data));
                 enableInt = data != 0;
                 break;
             case 1:
-                LOG.info("Write Sound enable: {}", Integer.toHexString(data));
+                LOG.debug("Write Sound enable: {}", Integer.toHexString(data));
                 break;
             case 2:
-                LOG.info("Write Aux board enable: {}", Integer.toHexString(data));
+                LOG.debug("Write Aux board enable: {}", Integer.toHexString(data));
                 break;
             case 3:
-                LOG.info("Write Flip screen: {}", Integer.toHexString(data));
+                LOG.debug("Write Flip screen: {}", Integer.toHexString(data));
                 break;
             case 4:
-                LOG.info("Write Player 1 start light : {}", Integer.toHexString(data));
+                LOG.debug("Write Player 1 start light : {}", Integer.toHexString(data));
                 break;
             case 5:
-                LOG.info("Write Player 2 start light : {}", Integer.toHexString(data));
+                LOG.debug("Write Player 2 start light : {}", Integer.toHexString(data));
                 break;
             case 6:
-                LOG.info("Write Coin lockout : {}", Integer.toHexString(data));
+                LOG.debug("Write Coin lockout : {}", Integer.toHexString(data));
                 break;
             case 7:
-                LOG.info("Write Coin counter : {}", Integer.toHexString(data));
+                LOG.debug("Write Coin counter : {}", Integer.toHexString(data));
                 break;
             default:
                 if (address >= 0x40 && address < 0x60) {
-                    LOG.info("Write Sound register {} : {}", Integer.toHexString(address),
+                    LOG.debug("Write Sound register {} : {}", Integer.toHexString(address),
                             Integer.toHexString(data));
                 } else if (address >= 0xC0) {
-                    LOG.info("Write Watchdog reset : {}", Integer.toHexString(data));
+                    LOG.debug("Write Watchdog reset : {}", Integer.toHexString(data));
                 } else if (address >= 0x60 && address < 0x80) { //TODO check 0x70 - 0x80 range
-                    LOG.info("Write Sprite x, y coordinates: {}, {}", Integer.toHexString(address),
+                    LOG.debug("Write Sprite x, y coordinates: {}, {}", Integer.toHexString(address),
                             Integer.toHexString(data));
                 } else {
                     LOG.warn("Unsupported IO write at 50{}, {} {}", Long.toHexString(address),
@@ -144,7 +157,7 @@ public class SystemBus implements BaseBusProvider {
     public void writeIoPort(int port, int value) {
         if ((port & 0xFF) == 0) {
             intHandlerLowByte = value;
-            LOG.info("Write Interrupt handler low byte: {}", Integer.toHexString(intHandlerLowByte));
+            LOG.debug("Write Interrupt handler low byte: {}", Integer.toHexString(intHandlerLowByte));
         } else {
             LOG.error("Write Invalid write at port {}, {}", Long.toHexString(port), Long.toHexString(value));
             throw new RuntimeException();
@@ -154,11 +167,16 @@ public class SystemBus implements BaseBusProvider {
     @Override
     public int readIoPort(int port) {
         if ((port & 0xFF) == 0) {
-            LOG.info("Read Interrupt handler low byte: {}", Integer.toHexString(intHandlerLowByte));
+            LOG.debug("Read Interrupt handler low byte: {}", Integer.toHexString(intHandlerLowByte));
             return intHandlerLowByte;
         } else {
             LOG.error("Invalid read at port {}", Long.toHexString(port));
             throw new RuntimeException();
         }
+    }
+
+    public void newFrame() {
+        joypadProvider.newFrame();
+        video.composeImage();
     }
 }

@@ -1,4 +1,4 @@
-package com.fbdev.util;
+package com.fbdev.ui.debug;
 
 /**
  * Federico Berti
@@ -22,12 +22,15 @@ public class PalRomViewer extends BaseViewer {
     public PalRomViewer(Video video) {
         super(video, getGridContext());
         this.palrom = video.getPalrom();
+        initPanel();
     }
 
     private static BaseViewer.GridContext getGridContext() {
         BaseViewer.GridContext gc = new BaseViewer.GridContext();
         gc.entries = 256;
         gc.rows = 4;
+        gc.panelWidth = 8 * (gc.entries / gc.rows) + 100;
+        gc.panelHeight = gc.panelWidth / 4 + 50;
         gc.title = "Palette ROM Viewer";
         return gc;
     }

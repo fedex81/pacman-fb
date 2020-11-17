@@ -1,4 +1,4 @@
-package com.fbdev.util;
+package com.fbdev.ui.debug;
 
 /**
  * Federico Berti
@@ -21,12 +21,15 @@ public class CromViewer extends BaseViewer {
     public CromViewer(Video video) {
         super(video, getGridContext());
         this.colors = video.getColors();
+        initPanel();
     }
 
     private static GridContext getGridContext() {
         GridContext gc = new GridContext();
         gc.entries = 32;
-        gc.rows = 2;
+        gc.rows = 1;
+        gc.panelWidth = 8 * (gc.entries / gc.rows) + 100;
+        gc.panelHeight = gc.panelWidth / 4 + 50;
         gc.title = "CROM Viewer";
         return gc;
     }
