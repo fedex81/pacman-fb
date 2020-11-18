@@ -1,7 +1,9 @@
 package com.fbdev.bus;
 
+import com.fbdev.helios.BaseVdpProvider;
 import com.fbdev.helios.input.JoypadProvider;
 import com.fbdev.helios.model.BaseBusProvider;
+import com.fbdev.helios.model.Device;
 import com.fbdev.helios.util.Size;
 import com.fbdev.input.PacManPad;
 import com.fbdev.util.RomHelper;
@@ -30,9 +32,10 @@ public class SystemBus implements BaseBusProvider {
 
     public static boolean enableInt = false;
 
-    private byte[] rom, ram;
+    private byte[] rom, ram, ioReg;
     private int intHandlerLowByte = 0;
     private PacManPad joypadProvider;
+    private BaseVdpProvider vdpProvider;
 
     private int dipSwitchSettings =
             (1 << 0) | //0=free play, 1=1 coin per game
@@ -43,14 +46,26 @@ public class SystemBus implements BaseBusProvider {
                     (0 << 5) | //2=20000 points,3=none
                     (1 << 7); //1=normal ghost names, 0=alternate names
 
-    public SystemBus(JoypadProvider joypadProvider) {
+    public SystemBus() {
         this.rom = RomHelper.getInstance().getRom();
         this.ram = new byte[RAM_END - RAM_START];
-        if (joypadProvider instanceof PacManPad) {
-            this.joypadProvider = (PacManPad) joypadProvider;
+        this.ioReg = new byte[IO_END - IO_START];
+    }
+
+    @Override
+    public BaseBusProvider attach(Device obj) {
+        if (obj instanceof JoypadProvider) {
+            if (obj instanceof PacManPad) {
+                this.joypadProvider = (PacManPad) obj;
+            } else {
+                LOG.error("Unexpected joypadProvider: {}", joypadProvider.getClass().getSimpleName());
+            }
+        } else if (obj instanceof BaseVdpProvider) {
+            this.vdpProvider = (BaseVdpProvider) obj;
         } else {
-            LOG.error("Unexpected joypadProvider: {}", joypadProvider.getClass().getSimpleName());
+            LOG.error("Unexpected object: {}", obj.getClass().getSimpleName());
         }
+        return this;
     }
 
     @Override
@@ -102,7 +117,7 @@ public class SystemBus implements BaseBusProvider {
         byte data = (byte) (dataL & 0xFF);
         if (address >= RAM_START && address < RAM_END) {
             if (address >= 0x4ff0) {
-                LOG.debug("Write to sprite RAM: {}, {}", Integer.toHexString(address), Integer.toHexString(data));
+                vdpProvider.updateSpriteContext(address, data & 0xFF);
             }
             ram[address - RAM_START] = data;
         } else if (address >= IO_START && address < IO_END) {
@@ -114,8 +129,9 @@ public class SystemBus implements BaseBusProvider {
         }
     }
 
-    private void writeIoHandler(int address, int data, Size size) {
+    private void writeIoHandler(int address, byte data, Size size) {
         address &= 0xFF;
+        ioReg[address] = data;
         switch (address) {
             case 0:
                 LOG.debug("Write Interrupt enable: {}", Integer.toHexString(data));
@@ -148,18 +164,15 @@ public class SystemBus implements BaseBusProvider {
                             Integer.toHexString(data));
                 } else if (address >= 0xC0) {
                     LOG.debug("Write Watchdog reset : {}", Integer.toHexString(data));
-                } else if (address >= 0x60 && address < 0x80) { //TODO check 0x70 - 0x80 range
-                    LOG.debug("Write Sprite x, y coordinates: {}, {}", Integer.toHexString(address),
-                            Integer.toHexString(data));
-                } else {
+                } else if (address >= 0x60 && address < 0x70) {
+                    vdpProvider.updateSpriteContext(address, data & 0xFF);
+                } else { //TODO check 0x70 - 0x80 range
                     LOG.warn("Unsupported IO write at 50{}, {} {}", Long.toHexString(address),
                             Long.toHexString(data), size);
-//                    Main.verbose = true;
-                    throw new RuntimeException();
+//                    throw new RuntimeException();
                 }
         }
     }
-
 
     @Override
     public void writeIoPort(int port, int value) {

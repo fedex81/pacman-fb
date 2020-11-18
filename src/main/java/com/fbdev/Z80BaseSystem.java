@@ -38,17 +38,14 @@ import java.time.Duration;
 public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
 
     private static final Logger LOG = LogManager.getLogger(Z80BaseSystem.class.getSimpleName());
-    private static int Z80_CLOCK_HZ = 3_072_000;
-    private static int Z80_CYCLES_PER_FRAME = Z80_CLOCK_HZ / 60;
+    private static final int Z80_CLOCK_HZ = 3_072_000;
+    private static final int Z80_CYCLES_PER_FRAME = Z80_CLOCK_HZ / 60;
     private static int frameCounter;
     protected Z80Provider z80;
-    private Z80Provider.Interrupt vdpInterruptType;
     private int nextZ80Cycle = counter;
 
     protected Z80BaseSystem(DisplayWindow emuFrame) {
         super(emuFrame);
-        vdpInterruptType = Z80Provider.Interrupt.IM2;
-
     }
 
     public static SystemProvider createNewInstance(DisplayWindow emuFrame) {
@@ -58,15 +55,12 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
     @Override
     public void init() {
         joypad = new PacManPad();
-        bus = new SystemBus(joypad);
-        initCommon();
-    }
-
-    private void initCommon() {
+        bus = new SystemBus();
         stateHandler = BaseStateHandler.EMPTY_STATE;
         sound = SoundProvider.NO_SOUND;
 //        inputProvider = InputProvider.createInstance(joypad);
         vdp = new Video(RomHelper.getInstance(), bus.getRam(), joypad);
+        bus.attach(vdp).attach(joypad);
         reloadWindowState();
 //        createAndAddVdpEventListener();
     }

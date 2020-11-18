@@ -8,6 +8,7 @@ import com.fbdev.util.RomHelper;
 import com.fbdev.util.VideoUtil;
 
 import java.awt.*;
+import java.util.Arrays;
 
 /**
  * Federico Berti
@@ -15,6 +16,8 @@ import java.awt.*;
  * Copyright 2020
  */
 public class Video implements BaseVdpProvider {
+
+    SpriteContext[] spriteContexts = new SpriteContext[8];
 
     private static final int tileW = VideoMode.H28_V36.getTileW(),
             tileH = VideoMode.H28_V36.getTileH();
@@ -28,6 +31,16 @@ public class Video implements BaseVdpProvider {
 
     int[] render = new int[tileW * 8 * tileH * 8];
 
+    @Override
+    public void init() {
+        VideoUtil.generateTileMapper(tileMapper);
+        VideoUtil.generateColors(crom, colors);
+        VideoUtil.generatePaletteToCromIdx(palrom, paletteToColorsIdx);
+        VideoUtil.generateTileToPaletteIdx(tileRom, tileToPaletteIdx);
+        VideoUtil.generateSpriteToPaletteIdx(spriteRom, spriteToPaletteIdx);
+        Arrays.fill(spriteContexts, new SpriteContext());
+    }
+
     public Video(RomHelper r, byte[] ram, JoypadProvider joypadProvider) {
         this.crom = r.getCrom();
         this.palrom = r.getPalRom();
@@ -39,12 +52,9 @@ public class Video implements BaseVdpProvider {
     }
 
     @Override
-    public void init() {
-        VideoUtil.generateTileMapper(tileMapper);
-        VideoUtil.generateColors(crom, colors);
-        VideoUtil.generatePaletteToCromIdx(palrom, paletteToColorsIdx);
-        VideoUtil.generateTileToPaletteIdx(tileRom, tileToPaletteIdx);
-        VideoUtil.generateSpriteToPaletteIdx(spriteRom, spriteToPaletteIdx);
+    public void renderScreenDataLinear(int[] render) {
+        renderTiles(render);
+        renderSprites(render);
     }
 
     @Override
@@ -53,11 +63,31 @@ public class Video implements BaseVdpProvider {
     }
 
     @Override
-    public void renderScreenDataLinear(int[] render) {
-        composeImage(render);
+    public void updateSpriteContext(int address, int value) {
+        int val = value & 0xFF;
+        SpriteContext sc = spriteContexts[(address & 0xF) >> 1];
+        if ((address & 0x4FF0) == 0x4FF0) {
+            if (address % 2 == 0) {
+                sc.number = val >> 2;
+                sc.flipy = val & 1;
+                sc.flipx = (val >> 1) & 1;
+            } else {
+                sc.palette = val;
+            }
+        } else {
+            if (address % 2 == 0) {
+                sc.xpos = val;
+            } else {
+                sc.ypos = val;
+            }
+        }
     }
 
-    private void composeImage(int[] render) {
+    private void renderSprites(int[] render) {
+
+    }
+
+    private void renderTiles(int[] render) {
         int startAddrTile = 0;
         int tilePixels = 64;
         int[] rgbPixels = new int[tilePixels];
@@ -89,6 +119,10 @@ public class Video implements BaseVdpProvider {
                 lineAddrPx += 8;
             }
         }
+    }
+
+    static class SpriteContext {
+        int number, flipx, flipy, xpos, ypos, palette;
     }
 
     public Color[] getColors() {

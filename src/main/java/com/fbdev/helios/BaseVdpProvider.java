@@ -19,6 +19,7 @@
 
 package com.fbdev.helios;
 
+import com.fbdev.helios.model.Device;
 import com.fbdev.helios.util.VideoMode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,7 +28,7 @@ import java.util.Collections;
 import java.util.EventListener;
 import java.util.List;
 
-public interface BaseVdpProvider {
+public interface BaseVdpProvider extends Device {
 
     Logger LOG = LogManager.getLogger(BaseVdpProvider.class.getSimpleName());
 
@@ -36,6 +37,8 @@ public interface BaseVdpProvider {
     VideoMode getVideoMode();
 
     void renderScreenDataLinear(int[] render);
+
+    void updateSpriteContext(int address, int value);
 
     //after loading a state
     default void reload() {
@@ -71,9 +74,6 @@ public interface BaseVdpProvider {
     interface VdpEventListener extends EventListener {
 
         default void onVdpEvent(VdpEvent event, Object value) {
-        }
-
-        default void onRegisterChange(int reg, int value) {
         }
 
         default void onNewFrame() {

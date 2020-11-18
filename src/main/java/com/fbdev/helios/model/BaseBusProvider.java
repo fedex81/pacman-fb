@@ -30,4 +30,6 @@ public interface BaseBusProvider extends Device {
     void writeIoPort(int port, int value);
 
     int readIoPort(int port);
+
+    BaseBusProvider attach(Device device);
 }
