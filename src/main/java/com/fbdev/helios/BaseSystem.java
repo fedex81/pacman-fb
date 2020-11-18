@@ -23,9 +23,11 @@ import com.fbdev.helios.input.InputProvider;
 import com.fbdev.helios.input.JoypadProvider;
 import com.fbdev.helios.input.KeyboardInput;
 import com.fbdev.helios.model.BaseBusProvider;
+import com.fbdev.helios.model.Device;
 import com.fbdev.helios.model.DisplayWindow;
 import com.fbdev.helios.model.SystemProvider;
 import com.fbdev.helios.sound.SoundProvider;
+import com.fbdev.helios.util.Telemetry;
 import com.fbdev.helios.util.Util;
 import com.fbdev.helios.util.VideoMode;
 import org.apache.logging.log4j.LogManager;
@@ -70,14 +72,14 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
     protected int counter = 1;
     private String romName;
     private Path romPath;
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private boolean vdpDumpScreenData = false;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private volatile boolean pauseFlag = false;
     private long driftNs = 0;
     private Optional<String> stats = Optional.empty();
     final Consumer<String> statsConsumer = st -> stats = Optional.of(st);
     private double lastFps = 0;
-    private CyclicBarrier pauseBarrier = new CyclicBarrier(2);
+    private final CyclicBarrier pauseBarrier = new CyclicBarrier(2);
+    protected Telemetry telemetry = Telemetry.getInstance();
 
     protected BaseSystem(DisplayWindow emuFrame) {
         this.emuFrame = emuFrame;
@@ -243,10 +245,10 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
             }
             LOG.info("Rom thread cancel");
             emuFrame.resetScreen();
+            telemetry.reset();
 //            sound.reset();
 //            bus.closeRom();
-//            telemetry.reset();
-//            Optional.ofNullable(vdp).ifPresent(Device::reset);
+            Optional.ofNullable(vdp).ifPresent(Device::reset);
         }
     }
 
@@ -278,6 +280,7 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
 
     protected Optional<String> getStats(long nowNs) {
         lastFps = (1.0 * Util.SECOND_IN_NS) / ((nowNs - startNs));
+        telemetry.newFrame(lastFps, driftNs / 1000d).ifPresent(statsConsumer);
         startNs = nowNs;
         return stats;
     }
@@ -315,11 +318,11 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
         public void run() {
             try {
                 romPath = file;
-                romName = file.getFileName().toString();
+                romName = "Pac Man";
                 Thread.currentThread().setName(threadNamePrefix + romName);
                 Thread.currentThread().setPriority(Thread.NORM_PRIORITY + 1);
                 emuFrame.setTitle(romName);
-                LOG.info("Running rom: {}", romName);
+                LOG.info("Running roms from folder: {}", romName);
                 initAfterRomLoad();
                 loop();
             } catch (Exception | Error e) {

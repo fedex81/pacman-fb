@@ -28,7 +28,7 @@ import java.util.Optional;
 
 public interface DisplayWindow {
 
-    String APP_NAME = "Helios PacMan";
+    String APP_NAME = "Helios";
     String VERSION = "SNAPSHOT"; //FileLoader.loadVersionFromManifest();
     String FRAME_TITLE_HEAD = APP_NAME + " " + VERSION;
 

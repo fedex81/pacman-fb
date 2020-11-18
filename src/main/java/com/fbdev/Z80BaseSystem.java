@@ -78,23 +78,32 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
 
         do {
             try {
-                runZ80(counter);
-                counter++;
+                if (counter == nextZ80Cycle) {
+                    int cycleDelay = z80.executeInstruction();
+                    cycleDelay = Math.max(1, cycleDelay);
+                    nextZ80Cycle += cycleDelay;
+                }
                 if (counter >= Z80_CYCLES_PER_FRAME) {
-                    nextZ80Cycle -= Z80_CYCLES_PER_FRAME;
-                    frameCounter++;
-                    if (SystemBus.enableInt) {
-//                    LOG.info("interrupt");
-                        z80.interrupt(true);
-                    }
                     newFrame();
                 }
+                counter++;
             } catch (Exception e) {
                 LOG.error("Error main cycle", e);
                 break;
             }
         } while (!runningRomFuture.isDone());
         LOG.info("Exiting rom thread loop");
+    }
+
+    @Override
+    protected void newFrame() {
+        nextZ80Cycle -= Z80_CYCLES_PER_FRAME;
+        frameCounter++;
+        if (SystemBus.enableInt) {
+//                    LOG.info("interrupt");
+            z80.interrupt(true);
+        }
+        super.newFrame();
     }
 
     @Override
@@ -116,13 +125,5 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
     @Override
     protected void resetCycleCounters(int counter) {
 
-    }
-
-    private void runZ80(long counter) {
-        if (counter == nextZ80Cycle) {
-            int cycleDelay = z80.executeInstruction();
-            cycleDelay = Math.max(1, cycleDelay);
-            nextZ80Cycle += cycleDelay;
-        }
     }
 }

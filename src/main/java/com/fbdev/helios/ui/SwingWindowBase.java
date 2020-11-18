@@ -104,7 +104,7 @@ public abstract class SwingWindowBase implements DisplayWindow {
     }
 
     public void setTitle(String title) {
-        jFrame.setTitle(APP_NAME + "PacMan " + VERSION + " - " + title);
+        jFrame.setTitle(APP_NAME + " " + VERSION + " - " + title);
     }
 
     private void addKeyAction(JMenuItem component, SystemEvent event, ActionListener l) {
