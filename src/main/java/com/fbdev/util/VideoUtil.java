@@ -14,8 +14,8 @@ import java.util.function.Function;
  */
 public class VideoUtil {
 
-    private static final int tileW = VideoMode.H28_V36.getDimension().width / 8,
-            tileH = VideoMode.H28_V36.getDimension().height / 8;
+    private static final int tileW = VideoMode.H28_V36.getTileW(),
+            tileH = VideoMode.H28_V36.getTileH();
 
     private static int[] colorBitWeight = {0x21, 0x47, 0x97, 0x21, 0x47, 0x97, 0x51, 0xAE};
     private static BiFunction<Integer, Integer, Integer> cromBitDecodeFn = (d, b) -> (((d >> b) & 1) * colorBitWeight[b]);

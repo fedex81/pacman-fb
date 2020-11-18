@@ -18,6 +18,7 @@ import java.io.IOException;
  * <p>
  * Copyright 2020
  */
+@Deprecated
 public class Main {
 
     public final static boolean STOP_ON_EXCEPTION = true;
@@ -34,7 +35,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         RomHelper.init();
-        bus = new SystemBus();
+        bus = new SystemBus(null);
         memIoOps = Z80MemIoOps.createInstance(bus);
         z80 = new Z80(memIoOps, null);
         z80.setRegPC(0);

@@ -1,27 +1,23 @@
 package com.fbdev;
 
 import com.fbdev.bus.SystemBus;
-import com.fbdev.helios.input.InputProvider;
+import com.fbdev.helios.BaseVdpProvider;
 import com.fbdev.helios.input.JoypadProvider;
-import com.fbdev.helios.input.KeyboardInput;
-import com.fbdev.helios.model.SystemProvider;
 import com.fbdev.helios.util.VideoMode;
-import com.fbdev.ui.SwingWindow;
 import com.fbdev.util.RomHelper;
 import com.fbdev.util.VideoUtil;
 
 import java.awt.*;
-import java.util.Optional;
 
 /**
  * Federico Berti
  * <p>
  * Copyright 2020
  */
-public class Video {
+public class Video implements BaseVdpProvider {
 
-    private static final int tileW = VideoMode.H28_V36.getDimension().width / 8,
-            tileH = VideoMode.H28_V36.getDimension().height / 8;
+    private static final int tileW = VideoMode.H28_V36.getTileW(),
+            tileH = VideoMode.H28_V36.getTileH();
     private static final int[] tileMapper = new int[tileW * tileH];
     private final byte[] crom, palrom, tileRom, spriteRom;
     private final byte[] ram;
@@ -31,8 +27,6 @@ public class Video {
     private final int[][] spriteToPaletteIdx = new int[64][256];
 
     int[] render = new int[tileW * 8 * tileH * 8];
-    SwingWindow window;
-    JoypadProvider joypadProvider;
 
     public Video(RomHelper r, byte[] ram, JoypadProvider joypadProvider) {
         this.crom = r.getCrom();
@@ -41,12 +35,11 @@ public class Video {
         this.spriteRom = r.getSpriteRom();
         this.ram = ram;
         this.colors = new Color[crom.length];
-        this.joypadProvider = joypadProvider;
         init();
     }
 
-    private void init() {
-        showFrame();
+    @Override
+    public void init() {
         VideoUtil.generateTileMapper(tileMapper);
         VideoUtil.generateColors(crom, colors);
         VideoUtil.generatePaletteToCromIdx(palrom, paletteToColorsIdx);
@@ -54,12 +47,23 @@ public class Video {
         VideoUtil.generateSpriteToPaletteIdx(spriteRom, spriteToPaletteIdx);
     }
 
+    @Override
+    public VideoMode getVideoMode() {
+        return VideoMode.H28_V36;
+    }
+
+    @Override
+    public int[] getScreenDataLinear() {
+        composeImage();
+        return render;
+    }
+
     public void composeImage() {
         int startAddrTile = 0;
         int tilePixels = 64;
         int[] rgbPixels = new int[tilePixels];
         int tilesToProcess = tileW * tileH;
-        int startAddrPx = 0;
+        int lineAddrPx = 0;
         int tileLineStartPx = 0;
         for (int i = 0; i < tilesToProcess; i++) {
             int tileLoc = tileMapper[i];
@@ -73,28 +77,19 @@ public class Video {
             for (int j = 0; j < rgbPixels.length; j++) {
                 rgbPixels[j] = colors[paletteCromIdx[paletteIndexes[j]]].getRGB();
             }
-            int startIdx = tileLineStartPx + startAddrPx;
+            int startIdx = tileLineStartPx + lineAddrPx;
             for (int j = 0; j < rgbPixels.length; j += 8) {
                 System.arraycopy(rgbPixels, j, render, startIdx, 8);
                 startIdx += tileW * 8;
             }
-//            System.out.println("Tile" + i + ", startPx: "+ (tileLineStartPx + startAddrPx));
+//            System.out.println("Tile" + i + ", startPx: "+ (tileLineStartPx + lineAddrPx));
             if ((i + 1) % tileW == 0) {
-                tileLineStartPx += 8 * 8 * tileW; //8 lines
-                startAddrPx = 0;
+                tileLineStartPx += 8 * 8 * tileW; //skip 8 lines
+                lineAddrPx = 0;
             } else {
-                startAddrPx += 8;
+                lineAddrPx += 8;
             }
         }
-        window.renderScreenLinear(render, Optional.empty(), VideoMode.H28_V36);
-    }
-
-    private void showFrame() {
-        window = new SwingWindow(SystemProvider.systemProvider);
-        window.init();
-        window.setupFrameKeyListener();
-        window.addKeyListener(KeyboardInput.createKeyAdapter(joypadProvider));
-        window.reloadControllers(InputProvider.DEFAULT_CONTROLLERS);
     }
 
     public Color[] getColors() {

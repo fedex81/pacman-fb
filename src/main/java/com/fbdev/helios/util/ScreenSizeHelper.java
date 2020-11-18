@@ -32,14 +32,15 @@ public class ScreenSizeHelper {
             Boolean.parseBoolean(System.getProperty("helios.ui.fix.aspect.ratio", "true"));
     public static final boolean INTEGER_SCALING =
             Boolean.parseBoolean(System.getProperty("helios.ui.integer.scaling", "true"));
-    public static int DEFAULT_W = VideoMode.H28_V36.getDimension().width;
-    public static int DEFAULT_H = VideoMode.H28_V36.getDimension().height;
-    public static Dimension DEFAULT_SCALED_SCREEN_SIZE = new Dimension(ScreenSizeHelper.DEFAULT_W * DEFAULT_SCALE_FACTOR,
-            ScreenSizeHelper.DEFAULT_H * DEFAULT_SCALE_FACTOR);
+    public static int DEFAULT_W = VideoMode.H28_V36.getPixelW();
+    public static int DEFAULT_H = VideoMode.H28_V36.getPixelH();
+    public static Dimension DEFAULT_SCALED_SCREEN_SIZE =
+            new Dimension(ScreenSizeHelper.DEFAULT_W * DEFAULT_SCALE_FACTOR,
+                    ScreenSizeHelper.DEFAULT_H * DEFAULT_SCALE_FACTOR);
     public static Dimension DEFAULT_BASE_SCREEN_SIZE = new Dimension(ScreenSizeHelper.DEFAULT_W,
             ScreenSizeHelper.DEFAULT_H);
     public static Dimension DEFAULT_FRAME_SIZE = new Dimension((int) (DEFAULT_SCALED_SCREEN_SIZE.width * 1.02),
-            (int) (DEFAULT_SCALED_SCREEN_SIZE.height * 1.10));
+            (int) (DEFAULT_SCALED_SCREEN_SIZE.height * 1.12));
 
     public static Dimension getScreenSize(VideoMode videoMode, double multiplier, boolean mantainAspectRatio) {
         return getScreenSize(videoMode.getDimension(), multiplier, mantainAspectRatio);

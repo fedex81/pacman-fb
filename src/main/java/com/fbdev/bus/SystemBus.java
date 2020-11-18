@@ -1,6 +1,6 @@
 package com.fbdev.bus;
 
-import com.fbdev.Video;
+import com.fbdev.helios.input.JoypadProvider;
 import com.fbdev.helios.model.BaseBusProvider;
 import com.fbdev.helios.util.Size;
 import com.fbdev.input.PacManPad;
@@ -30,7 +30,6 @@ public class SystemBus implements BaseBusProvider {
 
     public static boolean enableInt = false;
 
-    private Video video;
     private byte[] rom, ram;
     private int intHandlerLowByte = 0;
     private PacManPad joypadProvider;
@@ -44,12 +43,14 @@ public class SystemBus implements BaseBusProvider {
                     (0 << 5) | //2=20000 points,3=none
                     (1 << 7); //1=normal ghost names, 0=alternate names
 
-    public SystemBus() {
+    public SystemBus(JoypadProvider joypadProvider) {
         this.rom = RomHelper.getInstance().getRom();
         this.ram = new byte[RAM_END - RAM_START];
-        joypadProvider = new PacManPad();
-        joypadProvider.init();
-        this.video = new Video(RomHelper.getInstance(), ram, joypadProvider);
+        if (joypadProvider instanceof PacManPad) {
+            this.joypadProvider = (PacManPad) joypadProvider;
+        } else {
+            LOG.error("Unexpected joypadProvider: {}", joypadProvider.getClass().getSimpleName());
+        }
     }
 
     @Override
@@ -184,6 +185,9 @@ public class SystemBus implements BaseBusProvider {
 
     public void newFrame() {
         joypadProvider.newFrame();
-        video.composeImage();
+    }
+
+    public byte[] getRam() {
+        return ram;
     }
 }

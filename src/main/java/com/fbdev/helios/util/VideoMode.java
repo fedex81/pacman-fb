@@ -24,28 +24,43 @@ import org.apache.logging.log4j.Logger;
 
 import java.awt.*;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Set;
 
 public enum VideoMode {
-    H28_V36(28 * 8, 36 * 8),
-    ;
+    H28_V36(28, 36);
 
     private static Logger LOG = LogManager.getLogger(VideoMode.class.getSimpleName());
 
-    private static Set<VideoMode> values = new HashSet<>(EnumSet.allOf(VideoMode.class));
+    private static Set<VideoMode> values = EnumSet.allOf(VideoMode.class);
 
-    private int h;
-    private int v;
+    private int pixelH, pixelW, tileH, tileW;
     private Dimension dimension;
 
-    VideoMode(int h, int v) {
-        this.h = h;
-        this.v = v;
-        this.dimension = new Dimension(h, v);
+    VideoMode(int tileW, int tileH) {
+        this.tileW = tileW;
+        this.tileH = tileH;
+        this.pixelW = tileW * 8;
+        this.pixelH = tileH * 8;
+        this.dimension = new Dimension(pixelW, pixelH);
     }
 
     public Dimension getDimension() {
         return dimension;
+    }
+
+    public int getPixelW() {
+        return pixelW;
+    }
+
+    public int getPixelH() {
+        return pixelH;
+    }
+
+    public int getTileH() {
+        return tileH;
+    }
+
+    public int getTileW() {
+        return tileW;
     }
 }

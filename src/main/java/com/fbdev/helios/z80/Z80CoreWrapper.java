@@ -19,6 +19,7 @@
 
 package com.fbdev.helios.z80;
 
+import com.fbdev.bus.SystemBus;
 import com.fbdev.helios.model.BaseBusProvider;
 import com.fbdev.helios.util.Size;
 import com.fbdev.helios.util.Util;
@@ -93,15 +94,8 @@ public class Z80CoreWrapper implements Z80Provider {
         z80Core.setINTLine(false);
         z80Core.setNMI(false);
         z80Core.setPendingEI(false);
-        z80Core.setMemPtr(0xFFFF); //TODO
-
-        //from GenPlusGx
+        z80Core.setRegSP(SystemBus.RAM_END);
         z80Core.setRegPC(0);
-        z80Core.setRegI(0);
-        z80Core.setRegR(0);
-        z80Core.setIFF1(false);
-        z80Core.setIFF2(false);
-        z80Core.setIM(Z80.IntMode.IM0);
     }
 
     //If the Z80 has interrupts disabled when the frame interrupt is supposed
