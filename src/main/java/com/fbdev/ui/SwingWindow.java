@@ -19,10 +19,11 @@
 
 package com.fbdev.ui;
 
-import com.fbdev.model.SystemProvider;
-import com.fbdev.util.KeyBindingsHandler;
-import com.fbdev.util.RenderingStrategy;
-import com.fbdev.util.VideoMode;
+import com.fbdev.helios.model.SystemProvider;
+import com.fbdev.helios.ui.SwingWindowBase;
+import com.fbdev.helios.util.KeyBindingsHandler;
+import com.fbdev.helios.util.RenderingStrategy;
+import com.fbdev.helios.util.VideoMode;
 import com.google.common.base.Strings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,8 +32,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Optional;
 
-import static com.fbdev.util.ScreenSizeHelper.DEFAULT_H;
-import static com.fbdev.util.ScreenSizeHelper.DEFAULT_W;
+import static com.fbdev.helios.util.ScreenSizeHelper.DEFAULT_H;
+import static com.fbdev.helios.util.ScreenSizeHelper.DEFAULT_W;
 
 public class SwingWindow extends SwingWindowBase {
 

@@ -20,13 +20,14 @@
 package com.fbdev.input;
 
 
+import com.fbdev.helios.input.BasePadAdapter;
 import com.google.common.collect.Maps;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static com.fbdev.input.InputProvider.PlayerNumber.P1;
-import static com.fbdev.input.InputProvider.PlayerNumber.P2;
-import static com.fbdev.input.JoypadProvider.JoypadButton.*;
+import static com.fbdev.helios.input.InputProvider.PlayerNumber.P1;
+import static com.fbdev.helios.input.InputProvider.PlayerNumber.P2;
+import static com.fbdev.helios.input.JoypadProvider.JoypadButton.*;
 
 public class PacManPad extends BasePadAdapter {
 

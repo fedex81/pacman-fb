@@ -1,13 +1,13 @@
 package com.fbdev;
 
 import com.fbdev.bus.SystemBus;
-import com.fbdev.input.InputProvider;
-import com.fbdev.input.JoypadProvider;
-import com.fbdev.input.KeyboardInput;
-import com.fbdev.model.SystemProvider;
+import com.fbdev.helios.input.InputProvider;
+import com.fbdev.helios.input.JoypadProvider;
+import com.fbdev.helios.input.KeyboardInput;
+import com.fbdev.helios.model.SystemProvider;
+import com.fbdev.helios.util.VideoMode;
 import com.fbdev.ui.SwingWindow;
 import com.fbdev.util.RomHelper;
-import com.fbdev.util.VideoMode;
 
 import java.awt.*;
 import java.util.Optional;

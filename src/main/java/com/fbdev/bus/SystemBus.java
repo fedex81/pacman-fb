@@ -1,10 +1,10 @@
 package com.fbdev.bus;
 
 import com.fbdev.Video;
+import com.fbdev.helios.model.BaseBusProvider;
+import com.fbdev.helios.util.Size;
 import com.fbdev.input.PacManPad;
-import com.fbdev.model.BaseBusProvider;
 import com.fbdev.util.RomHelper;
-import com.fbdev.util.Size;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,6 +34,15 @@ public class SystemBus implements BaseBusProvider {
     private byte[] rom, ram;
     private int intHandlerLowByte = 0;
     private PacManPad joypadProvider;
+
+    private int dipSwitchSettings =
+            (1 << 0) | //0=free play, 1=1 coin per game
+                    (0 << 1) | //2=1 coin per 2 games, 3=2 coins per game
+                    (0 << 2) | //# lives per game: 0=1 life,1=2 lives
+                    (0 << 3) | //2=3 lives, 3=5 lives
+                    (0 << 4) | //Bonus score for extra life: 0=10000 points, 1=15000 points
+                    (0 << 5) | //2=20000 points,3=none
+                    (1 << 7); //1=normal ghost names, 0=alternate names
 
     public SystemBus() {
         this.rom = RomHelper.getInstance().getRom();
@@ -74,8 +83,7 @@ public class SystemBus implements BaseBusProvider {
             return res;
         } else if (address < 0xC0) {
 //            LOG.info("Read DIP switch settings port: {}", size);
-//            return 0; //free play - 1 life
-            return 1; //1 coin per game
+            return dipSwitchSettings;
         } else {
             LOG.warn("Unsupported IO read {}, {}", Long.toHexString(address), size);
             throw new RuntimeException();
