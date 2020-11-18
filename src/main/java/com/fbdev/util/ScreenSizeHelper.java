@@ -32,8 +32,8 @@ public class ScreenSizeHelper {
             Boolean.parseBoolean(System.getProperty("helios.ui.fix.aspect.ratio", "true"));
     public static final boolean INTEGER_SCALING =
             Boolean.parseBoolean(System.getProperty("helios.ui.integer.scaling", "true"));
-    public static int DEFAULT_W = 320;
-    public static int DEFAULT_H = 240;
+    public static int DEFAULT_W = VideoMode.H28_V32.getDimension().width;
+    public static int DEFAULT_H = VideoMode.H28_V32.getDimension().height;
     public static Dimension DEFAULT_SCALED_SCREEN_SIZE = new Dimension(ScreenSizeHelper.DEFAULT_W * DEFAULT_SCALE_FACTOR,
             ScreenSizeHelper.DEFAULT_H * DEFAULT_SCALE_FACTOR);
     public static Dimension DEFAULT_BASE_SCREEN_SIZE = new Dimension(ScreenSizeHelper.DEFAULT_W,

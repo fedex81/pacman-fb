@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public enum VideoMode {
-    H28_V32(28, 32),
+    H28_V32(28 * 8, 32 * 8),
     ;
 
     private static Logger LOG = LogManager.getLogger(VideoMode.class.getSimpleName());

@@ -71,7 +71,7 @@ public class SwingWindow extends SwingWindowBase {
 
     @Override
     public void renderScreenLinear(int[] data, Optional<String> label, VideoMode videoMode) {
-        if (viewportSize != videoMode.getDimension()) {
+        if (!viewportSize.equals(videoMode.getDimension())) {
             RenderingStrategy.renderNearest(data, renderData, videoMode.getDimension(), viewportSize);
         } else {
             System.arraycopy(data, 0, renderData, 0, data.length);

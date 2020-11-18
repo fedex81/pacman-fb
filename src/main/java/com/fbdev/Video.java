@@ -1,5 +1,6 @@
 package com.fbdev;
 
+import com.fbdev.bus.SystemBus;
 import com.fbdev.input.InputProvider;
 import com.fbdev.input.JoypadProvider;
 import com.fbdev.input.KeyboardInput;
@@ -28,7 +29,8 @@ public class Video {
             cromBitDecodeFn.apply(d, 5);
     private static Function<Integer, Integer> toBlueFn = d -> cromBitDecodeFn.apply(d, 6) + cromBitDecodeFn.apply(d, 7);
 
-    private static final int tileW = 28, tileH = 32;
+    private static final int tileW = VideoMode.H28_V32.getDimension().width / 8,
+            tileH = VideoMode.H28_V32.getDimension().height / 8;
     private static final int[] tileMapper = new int[tileW * tileH];
     private byte[] crom, palrom, tileRom, spriteRom;
 
@@ -123,16 +125,28 @@ public class Video {
         int[] rgbPixels = new int[tilePixels];
         int tilesToProcess = tileW * tileH;
         int startAddrPx = 0;
+        int tileLineStartPx = 0;
         for (int i = 0; i < tilesToProcess; i++) {
-            int tileIdx = ram[tileMapper[i]] & 0xFF;
+            int tileLoc = tileMapper[i];
+            int tileIdx = ram[tileLoc] & 0xFF;
             int[] paletteIndexes = tileToPaletteIdx[tileIdx]; //64 pixel, a palette index for each
-            int paletteIdx = ram[i + 0x400] & 0x3F; // 64 palettes
+            int paletteIdx = ram[tileLoc + SystemBus.PALETTE_RAM_OFFSET] & 0x3F; // 64 palettes
             int[] paletteCromIdx = paletteToColorsIdx[paletteIdx];
             for (int j = 0; j < rgbPixels.length; j++) {
                 rgbPixels[j] = colors[paletteCromIdx[paletteIndexes[j]]].getRGB();
             }
-            System.arraycopy(rgbPixels, 0, render, startAddrPx, rgbPixels.length);
-            startAddrPx += tilePixels;
+            int startIdx = tileLineStartPx + startAddrPx;
+            for (int j = 0; j < rgbPixels.length; j += 8) {
+                System.arraycopy(rgbPixels, j, render, startIdx, 8);
+                startIdx += tileW * 8;
+            }
+//            System.out.println("Tile" + i + ", startPx: "+ (tileLineStartPx + startAddrPx));
+            if ((i + 1) % tileW == 0) {
+                tileLineStartPx += 8 * 8 * tileW; //8 lines
+                startAddrPx = 0;
+            } else {
+                startAddrPx += 8;
+            }
         }
         window.renderScreenLinear(render, Optional.empty(), VideoMode.H28_V32);
     }

@@ -26,6 +26,8 @@ public class SystemBus implements BaseBusProvider {
     private final static int IO_START = 0x5000;
     private final static int IO_END = IO_START + 0x100;
 
+    public final static int PALETTE_RAM_OFFSET = 0x400;
+
     public static boolean enableInt = false;
 
     private Video video;
@@ -68,11 +70,12 @@ public class SystemBus implements BaseBusProvider {
             return res;
         } else if (address < 0x80) {
             int res = joypadProvider.getIn1();
-            LOG.info("Read IN1 port: {}", Integer.toHexString(res));
+//            LOG.info("Read IN1 port: {}", Integer.toHexString(res));
             return res;
         } else if (address < 0xC0) {
-            LOG.info("Read DIP switch settings port: {}", size);
-            return 0; //free play - 1 life
+//            LOG.info("Read DIP switch settings port: {}", size);
+//            return 0; //free play - 1 life
+            return 1; //1 coin per game
         } else {
             LOG.warn("Unsupported IO read {}, {}", Long.toHexString(address), size);
             throw new RuntimeException();
@@ -89,11 +92,7 @@ public class SystemBus implements BaseBusProvider {
         int address = (int) addressL & 0x7FFF;
         byte data = (byte) (dataL & 0xFF);
         if (address >= RAM_START && address < RAM_END) {
-            if (address < 0x4400) { //tile ram
-                int offset = address & 0x3FF;
-                LOG.debug("Draw tile #{} at position: {}, using palette: {}", data, offset,
-                        ram[0x400 + offset] & 0xFF);
-            } else if (address >= 0x4ff0) {
+            if (address >= 0x4ff0) {
                 LOG.debug("Write to sprite RAM: {}, {}", Integer.toHexString(address), Integer.toHexString(data));
             }
             ram[address - RAM_START] = data;

@@ -49,14 +49,14 @@ public class Main {
                 counter -= Z80_CYCLES_PER_FRAME;
                 frameCounter++;
                 if (SystemBus.enableInt) {
-                    LOG.info("interrupt");
+//                    LOG.info("interrupt");
                     z80.setINTLine(true);
                 }
                 bus.newFrame();
                 Util.sleep(17);
                 if (frameCounter % 60 == 0) {
-                    LOG.info("1sec");
-                    System.out.println("1sec");
+//                    LOG.info("1sec");
+//                    System.out.println("1sec");
 //                    break;
                 }
 
