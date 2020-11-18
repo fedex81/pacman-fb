@@ -397,7 +397,6 @@ public abstract class SwingWindowBase implements DisplayWindow {
     }
 
     public void initSwing() {
-//        Util.registerJmx(this);
         GraphicsDevice gd = SwingScreenSupport.setupScreens();
         LOG.info("Emulation viewport size: " + viewportSize);
 
@@ -457,14 +456,6 @@ public abstract class SwingWindowBase implements DisplayWindow {
         JMenuItem loadRomItem = new JMenuItem("Load ROM");
         addKeyAction(loadRomItem, NEW_ROM, e -> handleNewRomDialog());
 
-//        recentFilesMenu = new JMenu("Recent Files");
-//        recentFilesItems = new JMenuItem[PrefStore.recentFileTotal];
-//        IntStream.range(0, recentFilesItems.length).forEach(i -> {
-//            recentFilesItems[i] = new JMenuItem();
-//            addKeyAction(recentFilesItems[i], NONE, e -> handleNewRomRecent(recentFilesItems[i].getToolTipText()));
-//            recentFilesMenu.add(recentFilesItems[i]);
-//        });
-
         JMenuItem closeRomItem = new JMenuItem("Close ROM");
         addKeyAction(closeRomItem, CLOSE_ROM, e -> handleSystemEvent(CLOSE_ROM, null, null));
 
@@ -514,7 +505,6 @@ public abstract class SwingWindowBase implements DisplayWindow {
 //                readFileContentAsString("HISTORY.md")));
 
         menu.add(loadRomItem);
-//        menu.add(recentFilesMenu);
         menu.add(closeRomItem);
         menu.add(loadStateItem);
         menu.add(saveStateItem);
@@ -590,8 +580,6 @@ public abstract class SwingWindowBase implements DisplayWindow {
         if (dimension.width != DEFAULT_W || dimension.height != DEFAULT_H) {
             scaleW = scale * DEFAULT_W / dimension.width;
             scaleH = scale * DEFAULT_H / dimension.height;
-//            offsetW = (int) (Math.max(0, scaleW * (DEFAULT_X - dimension.width)) / 2);
-//            offsetH = (int) (Math.max(0, scaleH * (DEFAULT_Y - dimension.height)) / 2);
         }
         int w = (int) (dimension.width * scaleW);
         int h = (int) (dimension.height * scaleH);
@@ -620,6 +608,10 @@ public abstract class SwingWindowBase implements DisplayWindow {
         } catch (Exception e) {
             return true;
         }
+    }
+
+    public int[] acquireRender() {
+        return renderData;
     }
 
     protected boolean updateDimension(boolean force, int w, int h, int newX, int newY) {

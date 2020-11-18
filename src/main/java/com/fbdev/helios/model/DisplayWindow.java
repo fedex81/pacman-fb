@@ -52,7 +52,7 @@ public interface DisplayWindow {
         }
 
         @Override
-        public void renderScreenLinear(int[] data, Optional<String> label, VideoMode videoMode) {
+        public void renderScreen(Optional<String> label, VideoMode videoMode) {
 
         }
 
@@ -70,19 +70,26 @@ public interface DisplayWindow {
         public void reloadSystem(SystemProvider systemProvider) {
 
         }
+
+        @Override
+        public int[] acquireRender() {
+            return new int[0];
+        }
     };
 
     void setTitle(String rom);
 
     void init();
 
-    void renderScreenLinear(int[] data, Optional<String> label, VideoMode videoMode);
+    void renderScreen(Optional<String> label, VideoMode videoMode);
 
     void resetScreen();
 
     void setFullScreen(boolean value);
 
     void reloadSystem(SystemProvider systemProvider);
+
+    int[] acquireRender();
 
     default void reloadControllers(Collection<String> list) {
         //DO NOTHING

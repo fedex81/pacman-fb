@@ -53,12 +53,11 @@ public class Video implements BaseVdpProvider {
     }
 
     @Override
-    public int[] getScreenDataLinear() {
-        composeImage();
-        return render;
+    public void renderScreenDataLinear(int[] render) {
+        composeImage(render);
     }
 
-    public void composeImage() {
+    private void composeImage(int[] render) {
         int startAddrTile = 0;
         int tilePixels = 64;
         int[] rgbPixels = new int[tilePixels];

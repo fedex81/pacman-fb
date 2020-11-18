@@ -35,7 +35,7 @@ public interface BaseVdpProvider {
 
     VideoMode getVideoMode();
 
-    int[] getScreenDataLinear();
+    void renderScreenDataLinear(int[] render);
 
     //after loading a state
     default void reload() {

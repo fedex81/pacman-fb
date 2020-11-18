@@ -261,7 +261,8 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
 
     protected void newFrame() {
         long tstamp = System.nanoTime();
-        renderScreenLinearInternal(vdp.getScreenDataLinear(), getStats(startCycle));
+        vdp.renderScreenDataLinear(emuFrame.acquireRender());
+        emuFrame.renderScreen(getStats(startCycle), VideoMode.H28_V36);
         long startWaitNs = System.nanoTime();
         elapsedWaitNs = syncCycle(startCycle) - startWaitNs;
         processSaveState();
@@ -279,10 +280,6 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
         lastFps = (1.0 * Util.SECOND_IN_NS) / ((nowNs - startNs));
         startNs = nowNs;
         return stats;
-    }
-
-    protected void renderScreenLinearInternal(int[] data, Optional<String> label) {
-        emuFrame.renderScreenLinear(data, label, VideoMode.H28_V36);
     }
 
     private void handlePause() {

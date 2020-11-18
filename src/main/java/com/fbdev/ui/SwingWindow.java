@@ -22,7 +22,6 @@ package com.fbdev.ui;
 import com.fbdev.helios.model.SystemProvider;
 import com.fbdev.helios.ui.SwingWindowBase;
 import com.fbdev.helios.util.KeyBindingsHandler;
-import com.fbdev.helios.util.RenderingStrategy;
 import com.fbdev.helios.util.VideoMode;
 import com.google.common.base.Strings;
 import org.apache.logging.log4j.LogManager;
@@ -66,17 +65,11 @@ public class SwingWindow extends SwingWindowBase {
 
     @Override
     public void refresh() {
-//        updateDimension(true, newDimension.width, newDimension.height, 0, 0);
         refreshStrategy(false);
     }
 
     @Override
-    public void renderScreenLinear(int[] data, Optional<String> label, VideoMode videoMode) {
-        if (!viewportSize.equals(videoMode.getDimension())) {
-            RenderingStrategy.renderNearest(data, renderData, videoMode.getDimension(), viewportSize);
-        } else {
-            System.arraycopy(data, 0, renderData, 0, data.length);
-        }
+    public void renderScreen(Optional<String> label, VideoMode videoMode) {
         this.newDimension = videoMode.getDimension();
         refresh();
         label.ifPresent(this::showLabel);
