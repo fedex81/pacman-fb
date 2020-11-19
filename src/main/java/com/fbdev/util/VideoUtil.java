@@ -1,11 +1,15 @@
 package com.fbdev.util;
 
+import com.fbdev.Video.*;
 import com.fbdev.helios.util.VideoMode;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static com.fbdev.Video.*;
 
 /**
  * Federico Berti
@@ -78,7 +82,7 @@ public class VideoUtil {
     public static void generateColors(byte[] crom, Color[] colors) {
         for (int i = 0; i < crom.length; i++) {
             int data = crom[i];
-            colors[i] = new Color(toRedFn.apply(data), toGreenFn.apply(data), toBlueFn.apply(data));
+            colors[i] = new Color(toRedFn.apply(data), toGreenFn.apply(data), toBlueFn.apply(data), 0);
         }
     }
 
@@ -111,7 +115,26 @@ public class VideoUtil {
         }
     }
 
-    public static void generateSpriteToPaletteIdx(byte[] spriteRom, int[][] spriteToPaletteIdx) {
+
+    public static EnumMap<FlipMode, int[][]> generateSpriteToPaletteIdxMap(byte[] spriteRom) {
+        EnumMap<FlipMode, int[][]> spriteFlipMap =
+                new EnumMap<FlipMode, int[][]>(FlipMode.class);
+        int[][] spriteToPaletteIdx = new int[NUM_SPRITES_ROM][SPRITE_PX];
+        int[][] spriteToPaletteFlipXIdx = new int[NUM_SPRITES_ROM][SPRITE_PX];
+        int[][] spriteToPaletteFlipYIdx = new int[NUM_SPRITES_ROM][SPRITE_PX];
+        int[][] spriteToPaletteFlipXYIdx = new int[NUM_SPRITES_ROM][SPRITE_PX];
+        VideoUtil.generateSpriteToPaletteNoFlip(spriteRom, spriteToPaletteIdx);
+        VideoUtil.generateSpriteToPaletteFlipX(spriteToPaletteIdx, spriteToPaletteFlipXIdx);
+        VideoUtil.generateSpriteToPaletteFlipY(spriteToPaletteIdx, spriteToPaletteFlipXIdx);
+        VideoUtil.generateSpriteToPaletteFlipXY(spriteToPaletteIdx, spriteToPaletteFlipXIdx);
+        spriteFlipMap.put(FlipMode.NO_FLIP, spriteToPaletteIdx);
+        spriteFlipMap.put(FlipMode.FLIP_X, spriteToPaletteFlipXIdx);
+        spriteFlipMap.put(FlipMode.FLIP_Y, spriteToPaletteFlipXIdx);
+        spriteFlipMap.put(FlipMode.FLIP_XY, spriteToPaletteFlipXYIdx);
+        return spriteFlipMap;
+    }
+
+    public static void generateSpriteToPaletteNoFlip(byte[] spriteRom, int[][] spriteToPaletteIdx) {
         int[] numq = {255, 63, 127, 191, 247, 55, 119, 183};
         for (int i = 0; i < spriteRom.length; i++) {
             int numSprite = i / 64;
@@ -128,5 +151,42 @@ public class VideoUtil {
             spriteToPaletteIdx[numSprite][pos - 2 * yShift] = p3TileIdx;
             spriteToPaletteIdx[numSprite][pos - 3 * yShift] = p4TileIdx;
         }
+    }
+
+    public static void generateSpriteToPaletteFlipX(int[][] spriteToPaletteIdx, int[][] spriteToPaletteFlipXIdx) {
+        for (int i = 0; i < spriteToPaletteIdx.length; i++) {
+            int lineIdx = 0;
+            int line = 0;
+            for (int j = 0; j < spriteToPaletteIdx[i].length; j++) {
+                int idx = (SPRITE_W_PX * (line + 1) - 1) - lineIdx;  //15 -> 0, 14 -> 1 etc
+                spriteToPaletteFlipXIdx[i][idx] = spriteToPaletteIdx[i][j];
+                lineIdx = (lineIdx + 1) % SPRITE_W_PX;
+                if (lineIdx == 0) {
+                    line++;
+                }
+            }
+        }
+    }
+
+    public static void generateSpriteToPaletteFlipY(int[][] spriteToPaletteIdx, int[][] spriteToPaletteFlipYIdx) {
+        for (int i = 0; i < NUM_SPRITES_ROM; i++) {
+            int idx = 240;
+            int delta = SPRITE_W_PX;
+            int lineIdx = 0;
+            for (int j = 0; j < SPRITE_PX; j++) {
+                int val = idx + lineIdx++;
+                spriteToPaletteFlipYIdx[i][val] = spriteToPaletteIdx[i][j];
+                if ((j + 1) % SPRITE_H_PX == 0) {
+                    idx = idx - delta;
+                    lineIdx = 0;
+                }
+            }
+        }
+    }
+
+    public static void generateSpriteToPaletteFlipXY(int[][] spriteToPaletteIdx, int[][] spriteToPaletteFlipXYIdx) {
+        int[][] temp = new int[NUM_SPRITES_ROM][SPRITE_PX];
+        generateSpriteToPaletteFlipX(spriteToPaletteIdx, temp);
+        generateSpriteToPaletteFlipY(temp, spriteToPaletteFlipXYIdx);
     }
 }

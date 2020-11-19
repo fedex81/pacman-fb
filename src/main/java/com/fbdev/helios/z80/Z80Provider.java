@@ -25,6 +25,8 @@ import z80core.Z80State;
 
 public interface Z80Provider extends Device {
 
+    int RAM_END = 0x4FFF; //pac man
+
     int executeInstruction();
 
     boolean interrupt(boolean value);

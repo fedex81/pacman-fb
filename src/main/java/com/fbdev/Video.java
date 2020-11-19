@@ -8,7 +8,7 @@ import com.fbdev.util.RomHelper;
 import com.fbdev.util.VideoUtil;
 
 import java.awt.*;
-import java.util.Arrays;
+import java.util.EnumMap;
 
 /**
  * Federico Berti
@@ -17,7 +17,11 @@ import java.util.Arrays;
  */
 public class Video implements BaseVdpProvider {
 
-    SpriteContext[] spriteContexts = new SpriteContext[8];
+
+    public final static int NUM_SPRITES_ROM = 64;
+    public final static int NUM_SPRITES_SCREEN = 8;
+    public final static int SPRITE_W_PX = 16, SPRITE_H_PX = 16;
+    public final static int SPRITE_PX = SPRITE_W_PX * SPRITE_H_PX;
 
     private static final int tileW = VideoMode.H28_V36.getTileW(),
             tileH = VideoMode.H28_V36.getTileH();
@@ -27,9 +31,10 @@ public class Video implements BaseVdpProvider {
     private final Color[] colors;
     private final int[][] paletteToColorsIdx = new int[64][4];
     private final int[][] tileToPaletteIdx = new int[256][64];
-    private final int[][] spriteToPaletteIdx = new int[64][256];
 
-    int[] render = new int[tileW * 8 * tileH * 8];
+    private SpriteContext[] spriteContexts = new SpriteContext[NUM_SPRITES_SCREEN];
+
+    private EnumMap<FlipMode, int[][]> spriteFlipMap;
 
     @Override
     public void init() {
@@ -37,8 +42,46 @@ public class Video implements BaseVdpProvider {
         VideoUtil.generateColors(crom, colors);
         VideoUtil.generatePaletteToCromIdx(palrom, paletteToColorsIdx);
         VideoUtil.generateTileToPaletteIdx(tileRom, tileToPaletteIdx);
-        VideoUtil.generateSpriteToPaletteIdx(spriteRom, spriteToPaletteIdx);
-        Arrays.fill(spriteContexts, new SpriteContext());
+        spriteFlipMap = VideoUtil.generateSpriteToPaletteIdxMap(spriteRom);
+        for (int i = 0; i < spriteContexts.length; i++) {
+            spriteContexts[i] = new SpriteContext();
+        }
+    }
+
+    int[] render = new int[tileW * 8 * tileH * 8];
+
+    private void renderSprites(int[] render) {
+        int linePx = getVideoMode().getPixelW();
+        int lines = getVideoMode().getPixelH();
+        int spritePixels = 256, spritePixelsW = 16;
+        for (int i = 0; i < spriteContexts.length; i++) {
+            SpriteContext sc = spriteContexts[i];
+            if (sc.xpos < 16 || sc.xpos > 239 || sc.ypos < 16 || sc.ypos > 255) {
+                continue; //TODO refine
+            }
+            int h28x_br = sc.xpos - 16;
+            int h28x_tl = linePx - 1 - h28x_br;
+            int v36_tl = lines - 16 - sc.ypos;
+            int screenPos = (v36_tl * linePx) + h28x_tl;
+
+            FlipMode flipMode = FlipMode.values[(sc.flipy << 1) | sc.flipx];
+            int[] paletteIndexes = spriteFlipMap.get(flipMode)[sc.number];
+            int[] paletteCromIdx = paletteToColorsIdx[sc.palette];
+            int startIdx = screenPos, spriteLinePx = 0;
+            final int blackRgb = 0; //no alpha
+
+            for (int j = 0; j < spritePixels; j++) {
+                int rgbPixel = colors[paletteCromIdx[paletteIndexes[j]]].getRGB();
+                if (rgbPixel != blackRgb) { //skip transparent px
+                    render[startIdx + spriteLinePx] = rgbPixel;
+                }
+                spriteLinePx++;
+                if ((j + 1) % spritePixelsW == 0) {
+                    startIdx += linePx;
+                    spriteLinePx = 0;
+                }
+            }
+        }
     }
 
     public Video(RomHelper r, byte[] ram, JoypadProvider joypadProvider) {
@@ -83,8 +126,8 @@ public class Video implements BaseVdpProvider {
         }
     }
 
-    private void renderSprites(int[] render) {
-
+    public int[][] getSpriteToPaletteIdx() {
+        return spriteFlipMap.get(FlipMode.NO_FLIP);
     }
 
     private void renderTiles(int[] render) {
@@ -137,8 +180,13 @@ public class Video implements BaseVdpProvider {
         return tileToPaletteIdx;
     }
 
-    public int[][] getSpriteToPaletteIdx() {
-        return spriteToPaletteIdx;
+    public enum FlipMode {
+        NO_FLIP,
+        FLIP_X,
+        FLIP_Y,
+        FLIP_XY;
+
+        final static FlipMode[] values = FlipMode.values();
     }
 
     public byte[] getPalrom() {

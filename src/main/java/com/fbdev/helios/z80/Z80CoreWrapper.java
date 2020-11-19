@@ -19,7 +19,6 @@
 
 package com.fbdev.helios.z80;
 
-import com.fbdev.bus.SystemBus;
 import com.fbdev.helios.model.BaseBusProvider;
 import com.fbdev.helios.util.Size;
 import com.fbdev.helios.util.Util;
@@ -94,7 +93,7 @@ public class Z80CoreWrapper implements Z80Provider {
         z80Core.setINTLine(false);
         z80Core.setNMI(false);
         z80Core.setPendingEI(false);
-        z80Core.setRegSP(SystemBus.RAM_END);
+        z80Core.setRegSP(RAM_END);
         z80Core.setRegPC(0);
     }
 

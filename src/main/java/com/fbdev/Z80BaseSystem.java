@@ -103,6 +103,7 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
 //                    LOG.info("interrupt");
             z80.interrupt(true);
         }
+        bus.newFrame();
         super.newFrame();
     }
 
