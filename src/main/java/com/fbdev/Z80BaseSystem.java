@@ -24,10 +24,10 @@ import com.fbdev.helios.BaseStateHandler;
 import com.fbdev.helios.BaseSystem;
 import com.fbdev.helios.model.DisplayWindow;
 import com.fbdev.helios.model.SystemProvider;
-import com.fbdev.helios.sound.SoundProvider;
 import com.fbdev.helios.z80.Z80CoreWrapper;
 import com.fbdev.helios.z80.Z80Provider;
 import com.fbdev.input.PacManPad;
+import com.fbdev.sound.Sound;
 import com.fbdev.util.RomHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,7 +57,7 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
         joypad = new PacManPad();
         bus = new SystemBus();
         stateHandler = BaseStateHandler.EMPTY_STATE;
-        sound = SoundProvider.NO_SOUND;
+        sound = new Sound(RomHelper.getInstance(), bus);
 //        inputProvider = InputProvider.createInstance(joypad);
         vdp = new Video(RomHelper.getInstance(), bus.getRam(), joypad);
         bus.attach(vdp).attach(joypad);
@@ -99,11 +99,11 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
     protected void newFrame() {
         nextZ80Cycle -= Z80_CYCLES_PER_FRAME;
         frameCounter++;
-        if (SystemBus.enableInt) {
-//                    LOG.info("interrupt");
+        if (bus.isIntEnabled()) {
             z80.interrupt(true);
         }
         bus.newFrame();
+        sound.onNewFrame();
         super.newFrame();
     }
 

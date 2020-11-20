@@ -141,6 +141,10 @@ public class RomHelper {
         return romTypeMap.get(TILE).array();
     }
 
+    public byte[] getSoundRom() {
+        return romTypeMap.get(SOUND).array();
+    }
+
     enum RomType {CPU, PAL, CROM, TILE, SPRITE, SOUND}
 
     static class RomInfo {

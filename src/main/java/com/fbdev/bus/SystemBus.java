@@ -4,6 +4,7 @@ import com.fbdev.helios.BaseVdpProvider;
 import com.fbdev.helios.input.JoypadProvider;
 import com.fbdev.helios.model.BaseBusProvider;
 import com.fbdev.helios.model.Device;
+import com.fbdev.helios.model.IoProvider;
 import com.fbdev.helios.util.Size;
 import com.fbdev.input.PacManPad;
 import com.fbdev.util.RomHelper;
@@ -15,7 +16,7 @@ import org.apache.logging.log4j.Logger;
  * <p>
  * Copyright 2020
  */
-public class SystemBus implements BaseBusProvider {
+public class SystemBus implements BaseBusProvider, IoProvider {
 
     private final static Logger LOG = LogManager.getLogger(SystemBus.class.getSimpleName());
 
@@ -30,18 +31,18 @@ public class SystemBus implements BaseBusProvider {
 
     public final static int PALETTE_RAM_OFFSET = 0x400;
 
-    public static boolean enableInt = false;
+    private boolean enableInt = false, soundEnabled = false;
 
     private byte[] rom, ram, ioReg;
-    private int intHandlerLowByte = 0;
+    private int intHandlerLowByte = 0; //TODO needed?
     private PacManPad joypadProvider;
     private BaseVdpProvider vdpProvider;
 
     private int dipSwitchSettings =
             (1 << 0) | //0=free play, 1=1 coin per game
                     (0 << 1) | //2=1 coin per 2 games, 3=2 coins per game
-                    (0 << 2) | //# lives per game: 0=1 life,1=2 lives
-                    (0 << 3) | //2=3 lives, 3=5 lives
+                    (1 << 2) | //# lives per game: 0=1 life,1=2 lives
+                    (1 << 3) | //2=3 lives, 3=5 lives
                     (0 << 4) | //Bonus score for extra life: 0=10000 points, 1=15000 points
                     (0 << 5) | //2=20000 points,3=none
                     (1 << 7); //1=normal ghost names, 0=alternate names
@@ -90,13 +91,9 @@ public class SystemBus implements BaseBusProvider {
     private int readIoHandler(int address, Size size) {
         address &= 0xFF;
         if (address < 0x40) {
-            int res = joypadProvider.getIn0();
-//            LOG.info("Read IN0 port: {}", Integer.toHexString(res));
-            return res;
+            return joypadProvider.getIn0();
         } else if (address < 0x80) {
-            int res = joypadProvider.getIn1();
-//            LOG.info("Read IN1 port: {}", Integer.toHexString(res));
-            return res;
+            return joypadProvider.getIn1();
         } else if (address < 0xC0) {
 //            LOG.info("Read DIP switch settings port: {}", size);
             return dipSwitchSettings;
@@ -134,11 +131,11 @@ public class SystemBus implements BaseBusProvider {
         ioReg[address] = data;
         switch (address) {
             case 0:
-                LOG.debug("Write Interrupt enable: {}", Integer.toHexString(data));
                 enableInt = data != 0;
                 break;
             case 1:
-                LOG.debug("Write Sound enable: {}", Integer.toHexString(data));
+                LOG.info("Write Sound enable: {}", Integer.toHexString(data));
+                soundEnabled = data != 0;
                 break;
             case 2:
                 LOG.debug("Write Aux board enable: {}", Integer.toHexString(data));
@@ -160,10 +157,10 @@ public class SystemBus implements BaseBusProvider {
                 break;
             default:
                 if (address >= 0x40 && address < 0x60) {
-                    LOG.debug("Write Sound register {} : {}", Integer.toHexString(address),
-                            Integer.toHexString(data));
+//                    LOG.debug("Write Sound register {} : {}", Integer.toHexString(address),
+//                            Integer.toHexString(data));
                 } else if (address >= 0xC0) {
-                    LOG.debug("Write Watchdog reset : {}", Integer.toHexString(data));
+//                    LOG.debug("Write Watchdog reset : {}", Integer.toHexString(data));
                 } else if (address >= 0x60 && address < 0x70) {
                     vdpProvider.updateSpriteContext(address, data & 0xFF);
                 } else { //TODO check 0x70 - 0x80 range
@@ -194,6 +191,21 @@ public class SystemBus implements BaseBusProvider {
             LOG.error("Invalid read at port {}", Long.toHexString(port));
             throw new RuntimeException();
         }
+    }
+
+    @Override
+    public boolean isIntEnabled() {
+        return enableInt;
+    }
+
+    @Override
+    public boolean isSoundEnabled() {
+        return soundEnabled;
+    }
+
+    @Override
+    public int readSoundData(int address) {
+        return ioReg[address & 0xFF];
     }
 
     public void newFrame() {
