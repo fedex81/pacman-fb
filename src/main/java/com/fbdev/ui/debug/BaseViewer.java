@@ -72,14 +72,14 @@ public abstract class BaseViewer {
                 rowCnt++;
             }
             JPanel cpanel = new JPanel();
-            cpanel.setBackground(Color.BLACK);
-                cpanel.setForeground(Color.BLACK);
-                cpanel.setName("Panel" + k);
-                cpanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-                panelList[k] = cpanel;
-                panel.add(cpanel);
-                k++;
-            }
+            cpanel.setBackground(Color.GRAY);
+            cpanel.setForeground(Color.GRAY);
+            cpanel.setName("Panel" + k);
+            cpanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            panelList[k] = cpanel;
+            panel.add(cpanel);
+            k++;
+        }
     }
 
     private void initFrame() {

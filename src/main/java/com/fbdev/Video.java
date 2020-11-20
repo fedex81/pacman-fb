@@ -68,10 +68,6 @@ public class Video implements BaseVdpProvider {
             int screenPos = (v36_tl * linePx) + h28x_tl;
 
             FlipMode flipMode = FlipMode.values[(sc.flipy << 1) | sc.flipx];
-            if (flipMode == FlipMode.FLIP_Y) {
-//                LOG.info(i + "," + h28x_tl + "," + v36_tl + "->" + screenPos);
-            }
-
             int[] paletteIndexes = spriteFlipMap.get(flipMode)[sc.number];
             int[] paletteCromIdx = paletteToColorsIdx[sc.palette];
             int startIdx = screenPos, spriteLinePx = 0;

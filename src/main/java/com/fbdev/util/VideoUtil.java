@@ -125,11 +125,11 @@ public class VideoUtil {
         int[][] spriteToPaletteFlipXYIdx = new int[NUM_SPRITES_ROM][SPRITE_PX];
         VideoUtil.generateSpriteToPaletteNoFlip(spriteRom, spriteToPaletteIdx);
         VideoUtil.generateSpriteToPaletteFlipX(spriteToPaletteIdx, spriteToPaletteFlipXIdx);
-        VideoUtil.generateSpriteToPaletteFlipY(spriteToPaletteIdx, spriteToPaletteFlipXIdx);
-        VideoUtil.generateSpriteToPaletteFlipXY(spriteToPaletteIdx, spriteToPaletteFlipXIdx);
+        VideoUtil.generateSpriteToPaletteFlipY(spriteToPaletteIdx, spriteToPaletteFlipYIdx);
+        VideoUtil.generateSpriteToPaletteFlipXY(spriteToPaletteIdx, spriteToPaletteFlipXYIdx);
         spriteFlipMap.put(FlipMode.NO_FLIP, spriteToPaletteIdx);
         spriteFlipMap.put(FlipMode.FLIP_X, spriteToPaletteFlipXIdx);
-        spriteFlipMap.put(FlipMode.FLIP_Y, spriteToPaletteFlipXIdx);
+        spriteFlipMap.put(FlipMode.FLIP_Y, spriteToPaletteFlipYIdx);
         spriteFlipMap.put(FlipMode.FLIP_XY, spriteToPaletteFlipXYIdx);
         return spriteFlipMap;
     }
@@ -176,7 +176,6 @@ public class VideoUtil {
             for (int j = 0; j < SPRITE_PX; j++) {
                 int val = idx + lineIdx++;
                 spriteToPaletteFlipYIdx[i][j] = spriteToPaletteIdx[i][val];
-//                System.out.printf("%3d,%3d   ",j, val);
                 if ((j + 1) % SPRITE_H_PX == 0) {
                     idx = idx - delta;
                     lineIdx = 0;
