@@ -31,7 +31,15 @@ public abstract class BaseViewer {
         this.video = video;
         this.panelList = new JPanel[gridContext.entries];
         this.gridContext = gridContext;
-        this.allColors = video.getColors();
+        addAlphaToColors();
+    }
+
+    private void addAlphaToColors() {
+        Color[] cs = video.getColors();
+        allColors = new Color[cs.length];
+        for (int i = 0; i < allColors.length; i++) {
+            allColors[i] = new Color(cs[i].getRGB()); //add alpha component
+        }
     }
 
     public void showFrame() {

@@ -16,11 +16,9 @@ import java.awt.*;
 public class CromViewer extends BaseViewer {
 
     private static final Logger LOG = LogManager.getLogger(CromViewer.class.getSimpleName());
-    private Color[] colors;
 
     public CromViewer(Video video) {
         super(video, getGridContext());
-        this.colors = video.getColors();
         initPanel();
     }
 
@@ -40,7 +38,7 @@ public class CromViewer extends BaseViewer {
             try {
                 int k = 0;
                 for (int i = 0; i < gridContext.entries; i++) {
-                    Color c = colors[i];
+                    Color c = allColors[i];
                     JPanel label = panelList[k];
                     label.setBackground(c);
                     label.setForeground(c);
