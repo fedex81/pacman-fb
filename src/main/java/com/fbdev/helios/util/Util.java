@@ -150,112 +150,25 @@ public class Util {
         }
     }
 
-    //bit 1 -> true
-    public static boolean bitSetTest(long number, int position) {
-        return ((number & (1 << position)) != 0);
-    }
-
-//    public static long readRom(IMemoryProvider memory, Size size, int address) {
-//        long data;
-//        if (size == Size.BYTE) {
-//            data = memory.readRomByte(address);
-//        } else if (size == Size.WORD) {
-//            data = memory.readRomByte(address) << 8;
-//            data |= memory.readRomByte(address + 1);
-//        } else {
-//            data = (long) memory.readRomByte(address) << 24;
-//            data |= memory.readRomByte(address + 1) << 16;
-//            data |= memory.readRomByte(address + 2) << 8;
-//            data |= memory.readRomByte(address + 3);
-//        }
-//        LogHelper.printLevel(LOG, Level.DEBUG, "Read ROM: {}, {}: {}", address, data, size, verbose);
-//        return data;
-//    }
-//
-//    public static long readRam(IMemoryProvider memory, Size size, long addressL) {
-//        long data;
-//        int address = (int) (addressL & 0xFFFF);
-//
-//        if (size == Size.BYTE) {
-//            data = memory.readRamByte(address);
-//        } else if (size == Size.WORD) {
-//            data = memory.readRamByte(address) << 8;
-//            data |= memory.readRamByte(address + 1);
-//        } else {
-//            data = (long) memory.readRamByte(address) << 24;
-//            data |= memory.readRamByte(address + 1) << 16;
-//            data |= memory.readRamByte(address + 2) << 8;
-//            data |= memory.readRamByte(address + 3);
-//        }
-//        LogHelper.printLevel(LOG, Level.DEBUG, "Read RAM: {}, {}: {}", address, data, size, verbose);
-//        return data;
-//    }
-
-//    public static long readSram(int[] sram, Size size, long address) {
-//        long data;
-//        if (size == Size.BYTE) {
-//            data = sram[(int) address];
-//        } else if (size == Size.WORD) {
-//            data = sram[(int) address] << 8;
-//            data |= sram[(int) address + 1];
-//        } else {
-//            data = (long) sram[(int) address] << 24;
-//            data |= sram[(int) address + 1] << 16;
-//            data |= sram[(int) address + 2] << 8;
-//            data |= sram[(int) address + 3];
-//        }
-//        LogHelper.printLevel(LOG, Level.DEBUG, "Read SRAM: {}, {}: {}", address, data, size, verbose);
-//        return data;
-//    }
-
-//    public static void writeRam(IMemoryProvider memory, Size size, int address, long data) {
-//        if (size == Size.BYTE) {
-//            memory.writeRamByte(address, (int) data);
-//        } else if (size == Size.WORD) {
-//            memory.writeRamByte(address, (int) (data >> 8));
-//            memory.writeRamByte(address + 1, (int) (data & 0xFF));
-//        } else if (size == Size.LONG) {
-//            memory.writeRamByte(address, (int) ((data >> 24) & 0xFF));
-//            memory.writeRamByte(address + 1, (int) ((data >> 16) & 0xFF));
-//            memory.writeRamByte(address + 2, (int) ((data >> 8) & 0xFF));
-//            memory.writeRamByte(address + 3, (int) (data & 0xFF));
-//        }
-//        LogHelper.printLevel(LOG, Level.DEBUG, "Write RAM: {}, {}: {}", address, data, size, verbose);
-//    }
-
-//    public static long computeChecksum(IMemoryProvider memoryProvider) {
-//        long res = 0;
-//        //checksum is computed starting from byte 0x200
-//        int i = 0x200;
-//        int size = memoryProvider.getRomSize();
-//        for (; i < size - 1; i += 2) {
-//            long val = Util.readRom(memoryProvider, Size.WORD, i);
-//            res = (res + val) & 0xFFFF;
-//        }
-//        //read final byte ??
-//        res = size % 2 != 0 ? (res + memoryProvider.readRomByte(i)) & 0xFFFF : res;
-//        return res;
-//    }
-
-    public static String computeSha1Sum(int[] data) {
+    public static String sha1(int[] data) {
         Hasher h = Hashing.sha1().newHasher();
         Arrays.stream(data).forEach(d -> h.putByte((byte) d));
         return BaseEncoding.base16().lowerCase().encode(h.hash().asBytes());
     }
 
-//    public static String computeSha1Sum(IMemoryRom rom){
-//        return computeSha1Sum(rom.getRomData());
-//    }
+    public static String sha1(byte[] data) {
+        Hasher h = Hashing.sha1().newHasher();
+        for (int i = 0; i < data.length; i++) {
+            h.putByte(data[i]);
+        }
+        return BaseEncoding.base16().lowerCase().encode(h.hash().asBytes());
+    }
 
     public static String computeCrc32(int[] data) {
         CRC32 crc32 = new CRC32();
         Arrays.stream(data).forEach(crc32::update);
         return Long.toHexString(crc32.getValue());
     }
-
-//    public static String computeCrc32(IMemoryRom rom) {
-//        return computeCrc32(rom.getRomData());
-//    }
 
     public static int log2(int n) {
         if (n <= 0) throw new IllegalArgumentException();

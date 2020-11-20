@@ -30,6 +30,7 @@ import com.fbdev.helios.sound.SoundProvider;
 import com.fbdev.helios.util.Telemetry;
 import com.fbdev.helios.util.Util;
 import com.fbdev.helios.util.VideoMode;
+import com.fbdev.util.RomHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -318,7 +319,7 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
         public void run() {
             try {
                 romPath = file;
-                romName = "Pac Man";
+                romName = RomHelper.romSetName;
                 Thread.currentThread().setName(threadNamePrefix + romName);
                 Thread.currentThread().setPriority(Thread.NORM_PRIORITY + 1);
                 emuFrame.setTitle(romName);

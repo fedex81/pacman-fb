@@ -37,7 +37,7 @@ public class Video implements BaseVdpProvider {
     private final int[][] paletteToColorsIdx = new int[NUM_PALETTES_ROM][NUM_COLORS_PALETTE];
     private final int[][] tileToPaletteIdx = new int[NUM_TILES_ROM][TILE_PX];
 
-    private SpriteContext[] spriteContexts = new SpriteContext[NUM_SPRITES_SCREEN];
+    private final SpriteContext[] spriteContexts = new SpriteContext[NUM_SPRITES_SCREEN];
 
     private EnumMap<FlipMode, int[][]> spriteFlipMap;
 
@@ -51,6 +51,7 @@ public class Video implements BaseVdpProvider {
         for (int i = 0; i < spriteContexts.length; i++) {
             spriteContexts[i] = new SpriteContext();
         }
+//        new DebugView(this);
     }
 
     private void renderSprites(int[] render) {
@@ -67,6 +68,10 @@ public class Video implements BaseVdpProvider {
             int screenPos = (v36_tl * linePx) + h28x_tl;
 
             FlipMode flipMode = FlipMode.values[(sc.flipy << 1) | sc.flipx];
+            if (flipMode == FlipMode.FLIP_Y) {
+//                LOG.info(i + "," + h28x_tl + "," + v36_tl + "->" + screenPos);
+            }
+
             int[] paletteIndexes = spriteFlipMap.get(flipMode)[sc.number];
             int[] paletteCromIdx = paletteToColorsIdx[sc.palette];
             int startIdx = screenPos, spriteLinePx = 0;

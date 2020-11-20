@@ -159,7 +159,7 @@ public class VideoUtil {
             int line = 0;
             for (int j = 0; j < spriteToPaletteIdx[i].length; j++) {
                 int idx = (SPRITE_W_PX * (line + 1) - 1) - lineIdx;  //15 -> 0, 14 -> 1 etc
-                spriteToPaletteFlipXIdx[i][idx] = spriteToPaletteIdx[i][j];
+                spriteToPaletteFlipXIdx[i][j] = spriteToPaletteIdx[i][idx];
                 lineIdx = (lineIdx + 1) % SPRITE_W_PX;
                 if (lineIdx == 0) {
                     line++;
@@ -175,7 +175,8 @@ public class VideoUtil {
             int lineIdx = 0;
             for (int j = 0; j < SPRITE_PX; j++) {
                 int val = idx + lineIdx++;
-                spriteToPaletteFlipYIdx[i][val] = spriteToPaletteIdx[i][j];
+                spriteToPaletteFlipYIdx[i][j] = spriteToPaletteIdx[i][val];
+//                System.out.printf("%3d,%3d   ",j, val);
                 if ((j + 1) % SPRITE_H_PX == 0) {
                     idx = idx - delta;
                     lineIdx = 0;
