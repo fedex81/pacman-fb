@@ -46,6 +46,19 @@ public class SwingScreenSupport {
         return graphicsDevices[currentScreen];
     }
 
+    public static int detectUserScreenChange(GraphicsDevice currentDevice) {
+        GraphicsDevice prevDevice = graphicsDevices[currentScreen];
+        if (!currentDevice.equals(prevDevice)) {
+            for (int i = 0; i < graphicsDevices.length; i++) {
+                if (graphicsDevices[i].equals(currentDevice)) {
+                    currentScreen = i;
+                    return i;
+                }
+            }
+        }
+        return currentScreen;
+    }
+
     public static void showOnScreen(int screen, JFrame frame) {
         GraphicsDevice[] gd = graphicsDevices;
         int width = 0, height = 0;

@@ -73,6 +73,10 @@ public abstract class SwingWindowBase implements DisplayWindow {
     //    private JMenu recentFilesMenu;
     private JMenuItem[] recentFilesItems;
     private Map<PlayerNumber, JMenu> inputMenusMap;
+    private final static int screenChangedCheckFrequency = 60;
+    private List<JCheckBoxMenuItem> screenItems;
+    private int screenChangedCheckCounter = screenChangedCheckFrequency;
+
     private boolean showDebug = false;
     private Map<SystemEvent, AbstractAction> actionMap = new HashMap<>();
     // Transparent 16 x 16 pixel cursor image.
@@ -328,19 +332,19 @@ public abstract class SwingWindowBase implements DisplayWindow {
 
     private List<JCheckBoxMenuItem> createAddScreenItems(JMenu screensMenu) {
         List<String> l = SwingScreenSupport.detectScreens();
-        List<JCheckBoxMenuItem> items = new ArrayList<>();
+        screenItems = new ArrayList<>();
         for (int i = 0; i < l.size(); i++) {
             String s = l.get(i);
             JCheckBoxMenuItem it = new JCheckBoxMenuItem(s);
             it.setState(i == SwingScreenSupport.getCurrentScreen());
-            items.add(it);
+            screenItems.add(it);
             screensMenu.add(it);
         }
-        for (int i = 0; i < items.size(); i++) {
+        for (int i = 0; i < screenItems.size(); i++) {
             final int num = i;
-            addKeyAction(items.get(i), NONE, e -> handleScreenChange(items, num));
+            addKeyAction(screenItems.get(i), NONE, e -> handleScreenChange(screenItems, num));
         }
-        return items;
+        return screenItems;
     }
 
     private void handleScreenChange(List<JCheckBoxMenuItem> items, int newScreen) {
@@ -348,10 +352,12 @@ public abstract class SwingWindowBase implements DisplayWindow {
         if (cs != newScreen) {
             SwingScreenSupport.showOnScreen(newScreen, jFrame);
         }
+        handleScreenChangeItems(items, newScreen);
+    }
+
+    private void handleScreenChangeItems(List<JCheckBoxMenuItem> items, int newScreen) {
         for (int i = 0; i < items.size(); i++) {
-            if (i != newScreen) {
-                items.get(i).setSelected(false);
-            }
+            items.get(i).setSelected(i == newScreen);
         }
     }
 
@@ -426,7 +432,7 @@ public abstract class SwingWindowBase implements DisplayWindow {
 
         JMenuItem softResetItem = new JMenuItem("Soft Reset");
         addKeyAction(softResetItem, SOFT_RESET, e -> handleSystemEvent(SOFT_RESET, null, null));
-        setting.add(softResetItem);
+//        setting.add(softResetItem);
 
         JMenu screensMenu = new JMenu("Screens");
         createAddScreenItems(screensMenu);
@@ -506,10 +512,10 @@ public abstract class SwingWindowBase implements DisplayWindow {
 
         menu.add(loadRomItem);
         menu.add(closeRomItem);
-        menu.add(loadStateItem);
-        menu.add(saveStateItem);
-        menu.add(quickLoadStateItem);
-        menu.add(quickSaveStateItem);
+//        menu.add(loadStateItem);
+//        menu.add(saveStateItem);
+//        menu.add(quickLoadStateItem);
+//        menu.add(quickSaveStateItem);
         menu.add(exitItem);
         helpMenu.add(aboutItem);
 //        helpMenu.add(keyBindingsItem);
@@ -571,6 +577,19 @@ public abstract class SwingWindowBase implements DisplayWindow {
                 Optional.ofNullable(bg).ifPresent(Graphics2D::dispose);
             }
         } while (!updateScreen());
+        detectUserScreenChange();
+    }
+
+    private void detectUserScreenChange() {
+        if (--screenChangedCheckCounter == 0) {
+            screenChangedCheckCounter = screenChangedCheckFrequency;
+            int prev = SwingScreenSupport.getCurrentScreen();
+            int newScreen = SwingScreenSupport.detectUserScreenChange(jFrame.getGraphicsConfiguration().getDevice());
+            if (prev != newScreen) {
+                LOG.info("Detected user change, showing on screen: {}", newScreen);
+                handleScreenChangeItems(screenItems, newScreen);
+            }
+        }
     }
 
     private Rectangle updateViewportBounds() {
