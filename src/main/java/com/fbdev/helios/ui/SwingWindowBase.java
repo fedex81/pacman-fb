@@ -605,11 +605,10 @@ public abstract class SwingWindowBase implements DisplayWindow {
         boolean fullScreen = fullScreenItem.getState();
 
         if (fullScreen) {
-            Dimension dim = new Dimension(w, h);
             Dimension fs = new Dimension(viewportW, viewportH);
-            double ratio = ScreenSizeHelper.getFullScreenScaleFactor(fs, dim);
-            w *= ratio;
-            h *= ratio;
+            double ratio = ScreenSizeHelper.getFullScreenScaleFactor(fs, dimension);
+            w = (int) (dimension.width * ratio);
+            h = (int) (dimension.height * ratio);
             offsetW = Math.max(0, viewportW - w) / 2;
             offsetH = Math.max(0, viewportH - h) / 2;
         }

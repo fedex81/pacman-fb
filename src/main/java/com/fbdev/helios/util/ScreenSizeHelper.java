@@ -56,10 +56,18 @@ public class ScreenSizeHelper {
         return dim;
     }
 
+    public static double getFullScreenScaleFactor4by3(Dimension fullScreenSize, Dimension nativeScreenSize) {
+        return getFullScreenScaleFactor(fullScreenSize, nativeScreenSize, FOUR_BY_THREE);
+    }
+
     public static double getFullScreenScaleFactor(Dimension fullScreenSize, Dimension nativeScreenSize) {
+        return getFullScreenScaleFactor(fullScreenSize, nativeScreenSize, nativeScreenSize.getWidth() / nativeScreenSize.getHeight());
+    }
+
+    public static double getFullScreenScaleFactor(Dimension fullScreenSize, Dimension nativeScreenSize, double ratio) {
         double scaleW = fullScreenSize.getWidth() / nativeScreenSize.getWidth();
         double baseH = nativeScreenSize.getHeight();
-        baseH = FIX_ASPECT_RATIO ? nativeScreenSize.getWidth() / FOUR_BY_THREE : baseH;
+        baseH = FIX_ASPECT_RATIO ? nativeScreenSize.getWidth() / ratio : baseH;
         double scaleH = fullScreenSize.getHeight() * FULL_SCREEN_WITH_TITLE_BAR_FACTOR / baseH;
         double res = Math.min(scaleW, scaleH);
         return INTEGER_SCALING ? Math.floor(res) : res;
