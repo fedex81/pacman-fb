@@ -26,7 +26,7 @@ public class RomHelper {
     private final static Logger LOG = LogManager.getLogger(RomHelper.class.getSimpleName());
     private static final RomHelper INSTANCE;
 
-    public static final String ROMS_FOLDER = "./data/puckman";
+    public static final String ROMS_FOLDER = "./data";
     private final static Map<RomType, ByteBuffer> romTypeMap = new HashMap<>();
 
     static {
