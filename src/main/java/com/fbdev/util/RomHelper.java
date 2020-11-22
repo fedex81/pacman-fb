@@ -33,6 +33,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.fbdev.util.RomHelper.RomType.*;
 
@@ -198,6 +199,14 @@ public class RomHelper {
                     ", romEnd=" + romEnd +
                     ", type=" + type +
                     '}';
+        }
+    }
+
+    public static void main(String[] args) {
+        for (Map.Entry<String, Set<RomInfo>> entry : romSets.entrySet()) {
+            String s = entry.getKey() + "\n";
+            s += entry.getValue().stream().map(RomInfo::toString).collect(Collectors.joining("\n"));
+            System.out.println(s);
         }
     }
 }

@@ -25,10 +25,7 @@ import com.fbdev.helios.input.InputProvider.PlayerNumber;
 import com.fbdev.helios.model.DisplayWindow;
 import com.fbdev.helios.model.SystemProvider;
 import com.fbdev.helios.model.SystemProvider.SystemEvent;
-import com.fbdev.helios.util.KeyBindingsHandler;
-import com.fbdev.helios.util.ScreenSizeHelper;
-import com.fbdev.helios.util.SwingScreenSupport;
-import com.fbdev.helios.util.Util;
+import com.fbdev.helios.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -486,29 +483,29 @@ public abstract class SwingWindowBase implements DisplayWindow {
         JMenuItem aboutItem = new JMenuItem("About");
         addAction(aboutItem, e -> showHelpMessage(aboutItem.getText(), getAboutString()));
 
-//        JMenuItem creditsItem = new JMenuItem("Credits");
-//        addAction(creditsItem, e -> showHelpMessage(creditsItem.getText(),
-//                readFileContentAsString("CREDITS.md")
-//        ));
-//
-//        JMenuItem keyBindingsItem = new JMenuItem("Key Bindings");
-//        addAction(keyBindingsItem, e -> showHelpMessage(keyBindingsItem.getText(),
-//                KeyBindingsHandler.toConfigString()
-//        ));
-//
-//        JMenuItem readmeItem = new JMenuItem("Readme");
-//        addAction(readmeItem, e -> showHelpMessage(readmeItem.getText(),
-//                readFileContentAsString("README.md")
-//        ));
-//
-//        JMenuItem licenseItem = new JMenuItem("License");
-//        addAction(licenseItem, e -> showHelpMessage(licenseItem.getText(),
-//                readFileContentAsString("LICENSE.md")
-//        ));
-//
-//        JMenuItem historyItem = new JMenuItem("History");
-//        addAction(historyItem, e -> showHelpMessage(historyItem.getText(),
-//                readFileContentAsString("HISTORY.md")));
+        JMenuItem creditsItem = new JMenuItem("Credits");
+        addAction(creditsItem, e -> showHelpMessage(creditsItem.getText(),
+                FileUtil.readFileContentAsString("CREDITS.md")
+        ));
+
+        JMenuItem keyBindingsItem = new JMenuItem("Key Bindings");
+        addAction(keyBindingsItem, e -> showHelpMessage(keyBindingsItem.getText(),
+                KeyBindingsHandler.toConfigString()
+        ));
+
+        JMenuItem readmeItem = new JMenuItem("Readme");
+        addAction(readmeItem, e -> showHelpMessage(readmeItem.getText(),
+                FileUtil.readFileContentAsString("README.md")
+        ));
+
+        JMenuItem licenseItem = new JMenuItem("License");
+        addAction(licenseItem, e -> showHelpMessage(licenseItem.getText(),
+                FileUtil.readFileContentAsString("LICENSE.md")
+        ));
+
+        JMenuItem historyItem = new JMenuItem("History");
+        addAction(historyItem, e -> showHelpMessage(historyItem.getText(),
+                FileUtil.readFileContentAsString("HISTORY.md")));
 
         menu.add(loadRomItem);
         menu.add(closeRomItem);
@@ -518,11 +515,11 @@ public abstract class SwingWindowBase implements DisplayWindow {
 //        menu.add(quickSaveStateItem);
         menu.add(exitItem);
         helpMenu.add(aboutItem);
-//        helpMenu.add(keyBindingsItem);
-//        helpMenu.add(readmeItem);
-//        helpMenu.add(creditsItem);
-//        helpMenu.add(historyItem);
-//        helpMenu.add(licenseItem);
+        helpMenu.add(keyBindingsItem);
+        helpMenu.add(readmeItem);
+        helpMenu.add(creditsItem);
+        helpMenu.add(historyItem);
+        helpMenu.add(licenseItem);
 
         AbstractAction debugUiAction = toAbstractAction("debugUI", e -> showDebugInfo(!showDebug));
         actionMap.put(SET_DEBUG_UI, debugUiAction);
