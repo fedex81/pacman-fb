@@ -30,7 +30,6 @@ import com.fbdev.helios.sound.SoundProvider;
 import com.fbdev.helios.util.Telemetry;
 import com.fbdev.helios.util.Util;
 import com.fbdev.helios.util.VideoMode;
-import com.fbdev.util.RomHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -71,8 +70,7 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
     protected long elapsedWaitNs, frameProcessingDelayNs, startCycle;
     protected long targetNs, startNs = 0;
     protected int counter = 1;
-    private String romName;
-    private Path romPath;
+    protected String romName;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private volatile boolean pauseFlag = false;
     private long driftNs = 0;
@@ -159,7 +157,7 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
     public void handleNewRom(Path file) {
         init();
         this.romFile = file;
-        Runnable runnable = new RomRunnable(file);
+        Runnable runnable = new RomRunnable();
         runningRomFuture = executorService.submit(runnable, null);
     }
 
@@ -197,7 +195,7 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
 
     @Override
     public Path getRomPath() {
-        return romPath;
+        return romFile;
     }
 
     protected void pauseAndWait() {
@@ -309,17 +307,13 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
 
     class RomRunnable implements Runnable {
         private static final String threadNamePrefix = "cycle-";
-        private Path file;
 
-        public RomRunnable(Path file) {
-            this.file = file;
+        public RomRunnable() {
         }
 
         @Override
         public void run() {
             try {
-                romPath = file;
-                romName = RomHelper.romSetName;
                 Thread.currentThread().setName(threadNamePrefix + romName);
                 Thread.currentThread().setPriority(Thread.NORM_PRIORITY + 1);
                 emuFrame.setTitle(romName);

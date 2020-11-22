@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,19 +44,10 @@ import static com.fbdev.util.RomHelper.RomType.*;
 public class RomHelper {
 
     private final static Logger LOG = LogManager.getLogger(RomHelper.class.getSimpleName());
-    private static final RomHelper INSTANCE;
 
     public static final String ROMS_FOLDER = "./data";
-    private final static Map<RomType, ByteBuffer> romTypeMap = new HashMap<>();
 
-    static {
-        INSTANCE = new RomHelper();
-    }
-
-    private final static Map<String, Set<RomInfo>> romSets = ImmutableMap.of(
-            "Puck Man", INSTANCE.puckmanSet, "Pac Man", INSTANCE.pacmanSet);
-    public static String romSetName = "";
-    private Set<RomInfo> pacmanSet = ImmutableSet.<RomInfo>builder().
+    private static final Set<RomInfo> pacmanSet = ImmutableSet.<RomInfo>builder().
             add(RomInfo.of("pacman.6e", "e87e059c5be45753f7e9f33dff851f16d6751181", 0, 0x1000, CPU)).
             add(RomInfo.of("pacman.6f", "674d3a7f00d8be5e38b1fdc208ebef5a92d38329", 0x1000, 0x2000, CPU)).
             add(RomInfo.of("pacman.6h", "8e47e8c2c4d6117d174cdac150392042d3e0a881", 0x2000, 0x3000, CPU)).
@@ -67,7 +59,7 @@ public class RomHelper {
             add(RomInfo.of("82s123.7f", "8d0268dee78e47c712202b0ec4f1f51109b1f2a5", -1, -1, RomType.CROM)).
             add(RomInfo.of("82s126.4a", "19097b5f60d1030f8b82d9f1d3a241f93e5c75d6", -1, -1, RomType.PAL)).
             build();
-    private Set<RomInfo> puckmanSet = ImmutableSet.<RomInfo>builder().
+    private static final Set<RomInfo> puckmanSet = ImmutableSet.<RomInfo>builder().
             add(RomInfo.of("pm1-3.1m", "bbcec0570aeceb582ff8238a4bc8546a23430081", 0, 0x100, SOUND)).
             add(RomInfo.of("pm1-2.3m", "0c4d0bee858b97632411c440bea6948a74759746", 0x100, 0x200, SOUND)).
 
@@ -89,32 +81,46 @@ public class RomHelper {
             add(RomInfo.of("pm1_chg4.5j", "53771c573051db43e7185b1d188533056290a620", 0x800, 0x1000, RomType.SPRITE)).
             build();
 
-    public static void init() {
-        detectRomSet();
+    private final static Map<String, Set<RomInfo>> romSets = ImmutableMap.of(
+            "Puck Man", puckmanSet, "Pac Man", pacmanSet);
+
+    private final Map<RomType, ByteBuffer> romTypeMap = new HashMap<>();
+    private String romSetName = "";
+    private boolean romSetFound = false;
+
+    private RomHelper() {
     }
 
-    private static void detectRomSet() {
+    public static RomHelper createInstance(Path folder) {
+        RomHelper r = new RomHelper();
+        r.detectRomSet(folder);
+        return r;
+    }
+
+    private void detectRomSet(Path folder) {
         for (Map.Entry<String, Set<RomInfo>> e : romSets.entrySet()) {
             LOG.info("Attempting to load: {}", e.getKey());
-            if (loadRomSet(e)) {
+            if (loadRomSet(folder, e)) {
                 romSetName = e.getKey();
+                romSetFound = true;
                 break;
             }
         }
     }
 
-    private RomHelper() {
+    public boolean isRomSetFound() {
+        return romSetFound;
     }
 
-    public static RomHelper getInstance() {
-        return INSTANCE;
+    public String getRomSetName() {
+        return romSetName;
     }
 
-    private static boolean loadRomSet(Map.Entry<String, Set<RomInfo>> entry) {
+    private boolean loadRomSet(Path folder, Map.Entry<String, Set<RomInfo>> entry) {
         boolean ok = true;
         try {
             for (RomInfo r : entry.getValue()) {
-                byte[] data = Files.readAllBytes(Paths.get(ROMS_FOLDER, r.fileName));
+                byte[] data = Files.readAllBytes(Paths.get(folder.toAbsolutePath().toString(), r.fileName));
                 ok &= data != null && data.length > 0;
                 if (ok) {
                     String hash = Util.sha1(data);
@@ -122,7 +128,7 @@ public class RomHelper {
                         LOG.warn("{} sha1 mismatch\nexpected: {}\nactual:   {}", r.fileName, r.sha1, hash);
                     }
                     int size = r.romEnd > 0 ? r.romEnd : data.length;
-                    int startPos = r.romStart > 0 ? r.romStart : 0;
+                    int startPos = Math.max(r.romStart, 0);
                     ByteBuffer rom = ByteBuffer.allocate(size);
                     ByteBuffer partialRom = romTypeMap.get(r.type);
                     if (partialRom != null && partialRom.limit() > 0) {

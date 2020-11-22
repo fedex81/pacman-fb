@@ -19,6 +19,7 @@
 
 package com.fbdev.helios.ui;
 
+import com.fbdev.SystemLoader;
 import com.fbdev.helios.input.InputProvider;
 import com.fbdev.helios.input.InputProvider.PlayerNumber;
 import com.fbdev.helios.model.DisplayWindow;
@@ -32,7 +33,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferStrategy;
@@ -219,10 +219,10 @@ public abstract class SwingWindowBase implements DisplayWindow {
 
     private Optional<File> fileDialog(Component parent, FileResourceType type, boolean load) {
         int dialogType = load ? JFileChooser.OPEN_DIALOG : JFileChooser.SAVE_DIALOG;
-        FileFilter filter = null; //type == SAVE_STATE_RES ? SAVE_STATE_FILTER : ROM_FILTER;
         Optional<File> res = Optional.empty();
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(filter);
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setFileFilter(Util.folderFilter);
         fileChooser.setDialogType(dialogType);
         int result = fileChooser.showDialog(parent, null);
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -276,7 +276,7 @@ public abstract class SwingWindowBase implements DisplayWindow {
         Optional<File> optFile = loadRomDialog(jFrame);
         if (optFile.isPresent()) {
             Path file = optFile.get().toPath();
-//            SystemLoader.getInstance().handleNewRomFile(file);
+            SystemLoader.getInstance().handleNewRomFile(file);
             showInfo(NEW_ROM + ": " + file.getFileName());
         }
     }
@@ -284,7 +284,7 @@ public abstract class SwingWindowBase implements DisplayWindow {
     private void handleNewRomRecent(String path) {
         Path p = Paths.get(path);
         showInfo(NEW_ROM + ": " + p.getFileName());
-//        SystemLoader.getInstance().handleNewRomFile(p);
+        SystemLoader.getInstance().handleNewRomFile(p);
     }
 
     @Override
@@ -459,7 +459,7 @@ public abstract class SwingWindowBase implements DisplayWindow {
         bar.add(Box.createHorizontalGlue());
         bar.add(perfLabel);
 
-        JMenuItem loadRomItem = new JMenuItem("Load ROM");
+        JMenuItem loadRomItem = new JMenuItem("Load romSet from folder");
         addKeyAction(loadRomItem, NEW_ROM, e -> handleNewRomDialog());
 
         JMenuItem closeRomItem = new JMenuItem("Close ROM");

@@ -67,9 +67,12 @@ public class SystemBus implements BaseBusProvider, IoProvider {
                     (1 << 7); //1=normal ghost names, 0=alternate names
 
     public SystemBus() {
-        this.rom = RomHelper.getInstance().getRom();
         this.ram = new byte[RAM_END - RAM_START];
         this.ioReg = new byte[IO_END - IO_START];
+    }
+
+    public void init(RomHelper romHelper) {
+        this.rom = romHelper.getRom();
     }
 
     @Override

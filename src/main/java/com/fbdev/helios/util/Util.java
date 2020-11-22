@@ -27,6 +27,7 @@ import com.google.common.io.BaseEncoding;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.swing.filechooser.FileFilter;
 import java.io.*;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -52,6 +53,18 @@ public class Util {
     public static boolean verbose = false;
     public static ExecutorService executorService = Executors.newSingleThreadExecutor(new PriorityThreadFactory("util"));
     static Integer[] negativeCache = new Integer[Short.MAX_VALUE + 2];
+
+    public static final FileFilter folderFilter = new FileFilter() {
+        @Override
+        public boolean accept(File f) {
+            return f.isDirectory();
+        }
+
+        @Override
+        public String getDescription() {
+            return "Folder containing a romSet";
+        }
+    };
 
     static {
         for (int i = 0, j = 0; i < negativeCache.length; i++) {

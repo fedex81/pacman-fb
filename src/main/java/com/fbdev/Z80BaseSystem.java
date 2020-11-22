@@ -24,6 +24,7 @@ import com.fbdev.helios.BaseStateHandler;
 import com.fbdev.helios.BaseSystem;
 import com.fbdev.helios.model.DisplayWindow;
 import com.fbdev.helios.model.SystemProvider;
+import com.fbdev.helios.sound.SoundProvider;
 import com.fbdev.helios.z80.Z80CoreWrapper;
 import com.fbdev.helios.z80.Z80Provider;
 import com.fbdev.input.PacManPad;
@@ -43,6 +44,7 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
     private static int frameCounter;
     protected Z80Provider z80;
     private int nextZ80Cycle = counter;
+    private RomHelper romHelper;
 
     protected Z80BaseSystem(DisplayWindow emuFrame) {
         super(emuFrame);
@@ -57,10 +59,10 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
         joypad = new PacManPad();
         bus = new SystemBus();
         stateHandler = BaseStateHandler.EMPTY_STATE;
-        sound = new Sound(RomHelper.getInstance(), bus);
+        sound = SoundProvider.NO_SOUND;
+        vdp = null;
 //        inputProvider = InputProvider.createInstance(joypad);
-        vdp = new Video(RomHelper.getInstance(), bus.getRam(), joypad);
-        bus.attach(vdp).attach(joypad);
+        bus.attach(joypad);
         reloadWindowState();
 //        createAndAddVdpEventListener();
     }
@@ -109,8 +111,23 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
 
     @Override
     protected void initAfterRomLoad() {
+        bus.init(romHelper);
         z80 = Z80CoreWrapper.createInstance(bus);
+        sound = new Sound(romHelper, bus);
+        vdp = new Video(romHelper, bus.getRam(), joypad);
+        bus.attach(vdp);
         resetAfterRomLoad();
+    }
+
+    @Override
+    public void handleNewRom(Path file) {
+        romHelper = RomHelper.createInstance(file);
+        if (romHelper.isRomSetFound()) {
+            romName = romHelper.getRomSetName();
+            super.handleNewRom(file);
+        } else {
+            LOG.error("Unable to find a supported romSet in folder: {}", file.toAbsolutePath());
+        }
     }
 
     protected void resetAfterRomLoad() {

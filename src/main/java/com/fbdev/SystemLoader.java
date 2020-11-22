@@ -24,7 +24,6 @@ import com.fbdev.helios.model.DisplayWindow;
 import com.fbdev.helios.model.SystemProvider;
 import com.fbdev.helios.util.Util;
 import com.fbdev.ui.SwingWindow;
-import com.fbdev.util.RomHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -47,7 +46,7 @@ public class SystemLoader {
     public static boolean debugPerf = false;
     public static boolean showFps = false;
     public static boolean headless = false;
-    private static AtomicBoolean init = new AtomicBoolean();
+    private static final AtomicBoolean init = new AtomicBoolean();
     protected DisplayWindow emuFrame;
     private SystemProvider systemProvider;
 
@@ -88,7 +87,6 @@ public class SystemLoader {
             filePath = args[0];
         } else {
             LOG.info("Launching folder at: {}", filePath);
-            RomHelper.init();
             INSTANCE.handleNewRomFile(Paths.get(filePath));
             Util.sleep(1_000); //give the game thread a chance
         }
@@ -181,14 +179,8 @@ public class SystemLoader {
         };
     }
 
-    public SystemProvider createSystemProvider(Path file) {
-        return createSystemProvider(file, false);
-    }
-
-
     public SystemProvider createSystemProvider(Path file, boolean debugPerf) {
-        systemProvider = Z80BaseSystem.createNewInstance(emuFrame);
-        return systemProvider;
+        return Z80BaseSystem.createNewInstance(emuFrame);
     }
 
     public SystemProvider getSystemProvider() {
