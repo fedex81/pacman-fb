@@ -17,7 +17,7 @@ repositories {
 dependencies {
     implementation group: 'com.google.guava', name: 'guava', version: '28.2-jre'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.0'
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation group: 'junit', name: 'junit', version: '4.13.1'
 
     //include local jars
     implementation fileTree(dir: 'lib', include: ['*.jar'])
