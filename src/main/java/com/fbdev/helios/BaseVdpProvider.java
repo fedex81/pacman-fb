@@ -24,9 +24,7 @@ import com.fbdev.helios.util.VideoMode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Collections;
 import java.util.EventListener;
-import java.util.List;
 
 public interface BaseVdpProvider extends Device {
 
@@ -43,30 +41,6 @@ public interface BaseVdpProvider extends Device {
     //after loading a state
     default void reload() {
         //DO NOTHING
-    }
-
-    default void dumpScreenData() {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    default String getVdpStateString() {
-        return "vdpState: unsupported";
-    }
-
-    default void resetVideoMode(boolean force) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    default List<VdpEventListener> getVdpEventListenerList() {
-        return Collections.emptyList();
-    }
-
-    default boolean addVdpEventListener(VdpEventListener l) {
-        return getVdpEventListenerList().add(l);
-    }
-
-    default boolean removeVdpEventListener(VdpEventListener l) {
-        return getVdpEventListenerList().remove(l);
     }
 
     enum VdpEvent {NEW_FRAME, VIDEO_MODE, H_LINE_COUNTER, INTERRUPT}

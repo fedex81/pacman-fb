@@ -101,8 +101,8 @@ public interface DisplayWindow {
 
     default String getAboutString() {
         int year = LocalDate.now().getYear();
-        String yrString = year == 2018 ? "2018" : "2018-" + year;
-        String res = FRAME_TITLE_HEAD + "\nA Java-based multi-system emulator.";
+        String yrString = year == 2020 ? "2020" : "2020-" + year;
+        String res = FRAME_TITLE_HEAD + "\nA Pac Man (Arcade) emulator, written in Java.";
         res += "\n\nCopyright " + yrString + ", Federico Berti";
         res += "\n\nSee CREDITS.TXT for more information";
         res += "\n\nReleased under GPL v.3.0 license.";
@@ -110,6 +110,4 @@ public interface DisplayWindow {
     }
 
     void addKeyListener(KeyListener keyAdapter);
-
-
 }

@@ -62,29 +62,6 @@ public interface InputProvider {
 
     void handleEvents();
 
-//    static InputProvider createInstance(JoypadProvider joypadProvider) {
-//        InputProvider ip = InputProvider.NO_OP;
-//        if (JINPUT_ENABLE) {
-//            try {
-//                ip = JinputGamepadInputProvider.getInstance(joypadProvider);
-//            } catch (Exception | Error e) {
-//                LOG.warn("Unable to load jinput: {}: {}", e.getClass().getName(), e.getMessage());
-//            }
-//        }
-//        return ip;
-//    }
-//
-//    static void bootstrap() {
-//        String lib = new File(".").getAbsolutePath() + File.separator + JINPUT_NATIVES_PATH
-//                + File.separator + Util.NATIVE_SUBDIR;
-////        System.out.println(lib);
-//        System.setProperty("net.java.games.input.librarypath", lib);
-//        LOG.info("Loading system library from: {}", lib);
-//        //disable java.util.logging
-//        java.util.logging.LogManager.getLogManager().reset();
-//        LOG.info("Disabling java.util.logging");
-//    }
-
     void setPlayerController(PlayerNumber player, String controllerName);
 
     void reset();
