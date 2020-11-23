@@ -35,13 +35,14 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Random;
 
 public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
 
     private static final Logger LOG = LogManager.getLogger(Z80BaseSystem.class.getSimpleName());
+    private static final int FRAMES_HZ = 60;
     private static final int Z80_CLOCK_HZ = 3_072_000;
-    private static final int Z80_CYCLES_PER_FRAME = Z80_CLOCK_HZ / 60;
-    private static int frameCounter;
+    private static final int Z80_CYCLES_PER_FRAME = Z80_CLOCK_HZ / FRAMES_HZ;
     protected Z80Provider z80;
     private int nextZ80Cycle = counter;
     private RomHelper romHelper;
@@ -73,11 +74,15 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
         return stateHandler;
     }
 
+    Random rnd = new Random();
+    int frameCounter;
+
     @Override
     protected void loop() {
         LOG.info("Starting game loop");
-        targetNs = (long) (Duration.ofSeconds(1).toNanos() / 60); //60hz
-
+        targetNs = (long) (Duration.ofSeconds(1).toNanos() / FRAMES_HZ); //60hz
+        int val = rnd.nextInt(300);
+        boolean fs = true;
         do {
             try {
                 if (counter == nextZ80Cycle) {
@@ -87,20 +92,28 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
                 }
                 if (counter >= Z80_CYCLES_PER_FRAME) {
                     newFrame();
+//                    if(++frameCounter == val){
+//                        frameCounter = 0;
+//                        val = rnd.nextInt(300);
+////                        emuFrame.setFullScreen(fs);
+//                        fs = !fs;
+//                    }
+                    if (runningRomFuture.isDone()) {
+                        break;
+                    }
                 }
                 counter++;
             } catch (Exception e) {
                 LOG.error("Error main cycle", e);
                 break;
             }
-        } while (!runningRomFuture.isDone());
+        } while (true);
         LOG.info("Exiting rom thread loop");
     }
 
     @Override
     protected void newFrame() {
         nextZ80Cycle -= Z80_CYCLES_PER_FRAME;
-        frameCounter++;
         if (bus.isIntEnabled()) {
             z80.interrupt(true);
         }

@@ -60,7 +60,7 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
     protected BaseVdpProvider vdp;
     protected InputProvider inputProvider;
     protected BUS bus;
-    protected Future<Void> runningRomFuture;
+    private static final String threadNamePrefix = "cycle-";
     protected Path romFile;
     protected DisplayWindow emuFrame;
     protected volatile boolean saveStateFlag = false;
@@ -143,10 +143,6 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
             LOG.info("Soft Reset");
         }
         softReset = false;
-    }
-
-    @Deprecated
-    private void setDebug(boolean value) {
     }
 
     protected void reloadWindowState() {
@@ -251,15 +247,6 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
         }
     }
 
-    protected void createAndAddVdpEventListener() {
-        vdp.addVdpEventListener(new BaseVdpProvider.VdpEventListener() {
-            @Override
-            public void onNewFrame() {
-                newFrame();
-            }
-        });
-    }
-
     protected void newFrame() {
         long tstamp = System.nanoTime();
         vdp.renderScreenDataLinear(emuFrame.acquireRender());
@@ -305,12 +292,9 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
         futureDoneFlag = false;
     }
 
+    protected volatile Future<Void> runningRomFuture;
+
     class RomRunnable implements Runnable {
-        private static final String threadNamePrefix = "cycle-";
-
-        public RomRunnable() {
-        }
-
         @Override
         public void run() {
             try {
