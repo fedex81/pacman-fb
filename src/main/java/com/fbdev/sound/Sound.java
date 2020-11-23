@@ -114,7 +114,7 @@ public class Sound implements SoundProvider {
     private void openSound() {
         AudioFormat pcm = new AudioFormat(OUTPUT_SAMPLE_RATE, 8, 1, true, false);
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, pcm);
-        int bufferMono8bitMs = OUTPUT_SAMPLE_RATE / 1000 * 25; //25ms
+        int bufferMono8bitMs = OUTPUT_SAMPLE_RATE / 1000 * AUDIO_BUFFER_LEN_MS; //25ms default
         try {
             line = (SourceDataLine) AudioSystem.getLine(info);
             line.open(pcm, bufferMono8bitMs);

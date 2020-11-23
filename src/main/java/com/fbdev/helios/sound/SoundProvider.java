@@ -26,31 +26,14 @@ import org.apache.logging.log4j.Logger;
 public interface SoundProvider extends BaseVdpProvider.VdpEventListener {
     Logger LOG = LogManager.getLogger(SoundProvider.class.getSimpleName());
 
+    //ignored, we only support 48khz
     int SAMPLE_RATE_HZ = Integer.parseInt(System.getProperty("audio.sample.rate.hz", "44100"));
 
-    int DEFAULT_BUFFER_SIZE_MS = 30;
+    int DEFAULT_BUFFER_SIZE_MS = 25;
     int AUDIO_BUFFER_LEN_MS = Integer.parseInt(System.getProperty("audio.buffer.length.ms",
             String.valueOf(DEFAULT_BUFFER_SIZE_MS)));
 
     boolean ENABLE_SOUND = Boolean.parseBoolean(System.getProperty("helios.enable.sound", "true"));
-
-    boolean MD_NUKE_AUDIO = Boolean.parseBoolean(System.getProperty("md.nuke.audio", "true"));
-
-    boolean JAL_SOUND_MGR = Boolean.parseBoolean(System.getProperty("helios.jal.sound.mgr", "false"));
-
-//    int[] EMPTY_FM = new int[0];
-//    byte[] EMPTY_PSG = new byte[0];
-
-
-//    static int getPsgBufferByteSize(AudioFormat audioFormat) {
-//        return getFmBufferIntSize(audioFormat) >> 1;
-//    }
-//
-//    static int getFmBufferIntSize(AudioFormat audioFormat) {
-//        return SoundUtil.getStereoSamplesBufferSize(audioFormat);
-//    }
-
-
     SoundProvider NO_SOUND = new SoundProvider() {
 
         @Override
@@ -59,7 +42,6 @@ public interface SoundProvider extends BaseVdpProvider.VdpEventListener {
 
         @Override
         public void close() {
-
         }
 
         @Override
@@ -74,15 +56,8 @@ public interface SoundProvider extends BaseVdpProvider.VdpEventListener {
 
     void close();
 
-    default boolean isRecording() {
-        return false;
-    }
-
-    default void setRecording(boolean recording) {
-        //NO OP
-    }
-
     boolean isMute();
 
     void setEnabled(boolean mute);
+
 }

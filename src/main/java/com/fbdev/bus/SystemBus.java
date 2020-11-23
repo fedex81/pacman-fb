@@ -57,18 +57,23 @@ public class SystemBus implements BaseBusProvider, IoProvider {
     private PacManPad joypadProvider;
     private BaseVdpProvider vdpProvider;
 
-    private int dipSwitchSettings =
+    private static final int defaultDipSwitchSettings =
             (1 << 0) | //0=free play, 1=1 coin per game
                     (0 << 1) | //2=1 coin per 2 games, 3=2 coins per game
                     (1 << 2) | //# lives per game: 0=1 life,1=2 lives
                     (1 << 3) | //2=3 lives, 3=5 lives
                     (0 << 4) | //Bonus score for extra life: 0=10000 points, 1=15000 points
                     (0 << 5) | //2=20000 points,3=none
-                    (1 << 7); //1=normal ghost names, 0=alternate names
+                    (1 << 6) | //Difficulty (jumper pad): 0 = hard, 1 = normal
+                    (1 << 7);  //1=normal ghost names, 0=alternate names
+
+    private final static int dipSwitchSettings =
+            Integer.parseInt(System.getProperty("pacman.dip.switch.value", String.valueOf(defaultDipSwitchSettings)));
 
     public SystemBus() {
         this.ram = new byte[RAM_END - RAM_START];
         this.ioReg = new byte[IO_END - IO_START];
+        LOG.info("DipSwitch settings: {}", Integer.toHexString(dipSwitchSettings));
     }
 
     public void init(RomHelper romHelper) {
@@ -118,7 +123,7 @@ public class SystemBus implements BaseBusProvider, IoProvider {
             return joypadProvider.getIn1();
         } else if (address < 0xC0) {
 //            LOG.info("Read DIP switch settings port: {}", size);
-            return dipSwitchSettings;
+            return defaultDipSwitchSettings;
         } else {
             LOG.warn("Unsupported IO read {}, {}", Long.toHexString(address), size);
             throw new RuntimeException();
