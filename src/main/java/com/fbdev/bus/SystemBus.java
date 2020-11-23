@@ -45,6 +45,8 @@ public class SystemBus implements BaseBusProvider, IoProvider {
     private final static int RAM_START = 0x4000;
     public final static int RAM_END = RAM_START + 0x1000;
 
+    public final static int SPRITE_RAM_START = RAM_START + 0xFF0;
+
     private final static int IO_START = 0x5000;
     private final static int IO_END = IO_START + 0x100;
 
@@ -53,7 +55,7 @@ public class SystemBus implements BaseBusProvider, IoProvider {
     private boolean enableInt = false, soundEnabled = false;
 
     private byte[] rom, ram, ioReg;
-    private int intHandlerLowByte = 0; //TODO needed?
+    private int intHandlerLowByte = 0;
     private PacManPad joypadProvider;
     private BaseVdpProvider vdpProvider;
 
@@ -140,7 +142,7 @@ public class SystemBus implements BaseBusProvider, IoProvider {
         int address = (int) addressL & 0x7FFF;
         byte data = (byte) (dataL & 0xFF);
         if (address >= RAM_START && address < RAM_END) {
-            if (address >= 0x4ff0) {
+            if (address >= SPRITE_RAM_START) {
                 vdpProvider.updateSpriteContext(address, data & 0xFF);
             }
             ram[address - RAM_START] = data;
@@ -153,6 +155,13 @@ public class SystemBus implements BaseBusProvider, IoProvider {
         }
     }
 
+    //unsupported stuff
+//            case 2: LOG.debug("Write Aux board enable: {}", Integer.toHexString(data));
+//            case 3: LOG.debug("Write Flip screen: {}", Integer.toHexString(data));
+//            case 4: LOG.debug("Write Player 1 start light : {}", Integer.toHexString(data));
+//            case 5: LOG.debug("Write Player 2 start light : {}", Integer.toHexString(data));
+//            case 6: LOG.debug("Write Coin lockout : {}", Integer.toHexString(data));
+//            case 7: LOG.debug("Write Coin counter : {}", Integer.toHexString(data));
     private void writeIoHandler(int address, byte data, Size size) {
         address &= 0xFF;
         ioReg[address] = data;
@@ -164,37 +173,14 @@ public class SystemBus implements BaseBusProvider, IoProvider {
                 LOG.info("Write Sound enable: {}", Integer.toHexString(data));
                 soundEnabled = data != 0;
                 break;
-            case 2:
-                LOG.debug("Write Aux board enable: {}", Integer.toHexString(data));
-                break;
-            case 3:
-                LOG.debug("Write Flip screen: {}", Integer.toHexString(data));
-                break;
-            case 4:
-                LOG.debug("Write Player 1 start light : {}", Integer.toHexString(data));
-                break;
-            case 5:
-                LOG.debug("Write Player 2 start light : {}", Integer.toHexString(data));
-                break;
-            case 6:
-                LOG.debug("Write Coin lockout : {}", Integer.toHexString(data));
-                break;
-            case 7:
-                LOG.debug("Write Coin counter : {}", Integer.toHexString(data));
-                break;
-            default:
-                if (address >= 0x40 && address < 0x60) {
-//                    LOG.debug("Write Sound register {} : {}", Integer.toHexString(address),
-//                            Integer.toHexString(data));
-                } else if (address >= 0xC0) {
-//                    LOG.debug("Write Watchdog reset : {}", Integer.toHexString(data));
-                } else if (address >= 0x60 && address < 0x70) {
-                    vdpProvider.updateSpriteContext(address, data & 0xFF);
-                } else { //TODO check 0x70 - 0x80 range
-                    LOG.warn("Unsupported IO write at 50{}, {} {}", Long.toHexString(address),
-                            Long.toHexString(data), size);
-//                    throw new RuntimeException();
-                }
+        }
+        //address >= 0x40 && address < 0x60: sound registers
+        //address >= 0xC0: Watchdog reset
+        if (address >= 0x60 && address < 0x70) {
+            vdpProvider.updateSpriteContext(address, data & 0xFF);
+        } else if (address >= 0x70 && address < 0xC0) { //getting writes in the 0x70 - 0x80 range
+            LOG.warn("Unsupported IO write at 50{}, {} {}", Long.toHexString(address),
+                    Long.toHexString(data), size);
         }
     }
 
@@ -211,13 +197,8 @@ public class SystemBus implements BaseBusProvider, IoProvider {
 
     @Override
     public int readIoPort(int port) {
-        if ((port & 0xFF) == 0) {
-            LOG.debug("Read Interrupt handler low byte: {}", Integer.toHexString(intHandlerLowByte));
-            return intHandlerLowByte;
-        } else {
-            LOG.error("Invalid read at port {}", Long.toHexString(port));
-            throw new RuntimeException();
-        }
+        LOG.error("Invalid read at port {}", Long.toHexString(port));
+        throw new RuntimeException();
     }
 
     @Override
@@ -228,6 +209,11 @@ public class SystemBus implements BaseBusProvider, IoProvider {
     @Override
     public boolean isSoundEnabled() {
         return soundEnabled;
+    }
+
+    @Override
+    public int getAddressOnBus() {
+        return intHandlerLowByte;
     }
 
     @Override

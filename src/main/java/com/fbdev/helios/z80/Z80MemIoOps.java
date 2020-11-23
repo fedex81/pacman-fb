@@ -35,7 +35,6 @@ public class Z80MemIoOps implements IMemIoOps {
     private boolean activeInterrupt;
     private int[] ram;
     private int ramSizeMask;
-    private int forceAddressOnBus;
 
     public static Z80MemIoOps createInstance(BaseBusProvider z80BusProvider) {
         Z80MemIoOps m = new Z80MemIoOps() {
@@ -140,14 +139,11 @@ public class Z80MemIoOps implements IMemIoOps {
     public void outPort(int port, int value) {
         tstatesCount += 4;
         z80BusProvider.writeIoPort(port & 0xFF, value);
-        forceAddressOnBus = value;
-        LOG.info("forceAddressOnBus: {}, port: {}",
-                Integer.toHexString(forceAddressOnBus), Integer.toHexString(port & 0xFF));
     }
 
     @Override
     public int getAddressOnBus() {
-        return forceAddressOnBus;
+        return z80BusProvider.getAddressOnBus();
     }
 
     @Override

@@ -131,7 +131,7 @@ public class Video implements BaseVdpProvider {
     public void updateSpriteContext(int address, int value) {
         int val = value & 0xFF;
         SpriteContext sc = spriteContexts[(address & 0xF) >> 1];
-        if ((address & 0x4FF0) == 0x4FF0) {
+        if ((address & SystemBus.SPRITE_RAM_START) == SystemBus.SPRITE_RAM_START) {
             if (address % 2 == 0) {
                 sc.number = val >> 2;
                 sc.flipy = val & 1;

@@ -32,4 +32,8 @@ public interface BaseBusProvider extends Device {
     int readIoPort(int port);
 
     BaseBusProvider attach(Device device);
+
+    default int getAddressOnBus() {
+        return 0xFF;
+    }
 }

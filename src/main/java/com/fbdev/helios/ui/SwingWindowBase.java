@@ -183,18 +183,20 @@ public abstract class SwingWindowBase implements DisplayWindow {
     public void setFullScreen(boolean value) {
         fullScreenItem.setState(value);
         LOG.info("Full screen: " + fullScreenItem.isSelected());
-        jFrame.setVisible(false);
-        GraphicsDevice gd = SwingScreenSupport.getGraphicsDevice();
-        gd.setFullScreenWindow(value ? jFrame : null);
-        if (!value) {
-            jFrame.setSize(viewportSize);
-        }
-        viewportW = jFrame.getWidth();
-        viewportH = jFrame.getHeight();
+        SwingUtilities.invokeLater(() -> {
+            jFrame.setVisible(false);
+            GraphicsDevice gd = SwingScreenSupport.getGraphicsDevice();
+            gd.setFullScreenWindow(value ? jFrame : null);
+            if (!value) {
+                jFrame.setSize(viewportSize);
+            }
+            viewportW = jFrame.getWidth();
+            viewportH = jFrame.getHeight();
 
-        jFrame.setVisible(true);
-        jFrame.invalidate();
-        jFrame.repaint();
+            jFrame.setVisible(true);
+            jFrame.invalidate();
+            jFrame.repaint();
+        });
     }
 
     protected void showLabel(String label) {
