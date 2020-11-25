@@ -19,28 +19,15 @@
 
 package com.fbdev.helios;
 
+import com.fbdev.helios.util.FileUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.nio.file.Paths;
 
 public interface BaseStateHandler {
 
     Logger LOG = LogManager.getLogger(BaseStateHandler.class.getSimpleName());
-    BaseStateHandler EMPTY_STATE = new BaseStateHandler() {
-        @Override
-        public Type getType() {
-            return null;
-        }
-
-        @Override
-        public String getFileName() {
-            return null;
-        }
-
-        @Override
-        public byte[] getData() {
-            return new byte[0];
-        }
-    };
 
     Type getType();
 
@@ -50,8 +37,7 @@ public interface BaseStateHandler {
 
     default void storeData() {
         LOG.info("Persisting savestate to: {}", getFileName());
-//        FileLoader.writeFileSafe(Paths.get(getFileName()), getData()); //TODO
-        throw new RuntimeException();
+        FileUtil.writeFileSafe(Paths.get(getFileName()), getData());
     }
 
     enum Type {SAVE, LOAD}

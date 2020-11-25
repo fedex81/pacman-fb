@@ -218,7 +218,7 @@ public class Util {
         data[startIndex] = (byte) ((value) & 0xFF);
     }
 
-    public static String toStringValue(int... data) {
+    public static String toStringValue(byte... data) {
         String value = "";
         for (int datum : data) {
             value += (char) (datum & 0xFF);

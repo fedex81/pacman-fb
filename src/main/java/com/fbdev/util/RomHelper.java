@@ -48,6 +48,9 @@ public class RomHelper {
 
     public static final String ROMS_FOLDER = "./data";
 
+    private final static Map<RomSet, Set<RomInfo>> romSets = ImmutableMap.of(
+            RomSet.PUCK_MAN, puckmanSet, RomSet.PAC_MAN, pacmanSet);
+
     private static final Set<RomInfo> pacmanSet = ImmutableSet.<RomInfo>builder().
             add(RomInfo.of("pacman.6e", "e87e059c5be45753f7e9f33dff851f16d6751181", 0, 0x1000, CPU)).
             add(RomInfo.of("pacman.6f", "674d3a7f00d8be5e38b1fdc208ebef5a92d38329", 0x1000, 0x2000, CPU)).
@@ -81,13 +84,19 @@ public class RomHelper {
             add(RomInfo.of("pm1_chg3.5f", "be933e691df4dbe7d12123913c3b7b7b585b7a35", 0, 0x800, RomType.SPRITE)).
             add(RomInfo.of("pm1_chg4.5j", "53771c573051db43e7185b1d188533056290a620", 0x800, 0x1000, RomType.SPRITE)).
             build();
-
-    private final static Map<String, Set<RomInfo>> romSets = ImmutableMap.of(
-            "Puck Man", puckmanSet, "Pac Man", pacmanSet);
+    private RomSet romSet;
 
     private final Map<RomType, ByteBuffer> romTypeMap = new HashMap<>();
     private String romSetName = "";
     private boolean romSetFound = false;
+
+    public static void main(String[] args) {
+        for (Map.Entry<RomSet, Set<RomInfo>> entry : romSets.entrySet()) {
+            String s = entry.getKey() + "\n";
+            s += entry.getValue().stream().map(RomInfo::toString).collect(Collectors.joining("\n"));
+            System.out.println(s);
+        }
+    }
 
     private RomHelper() {
     }
@@ -99,10 +108,11 @@ public class RomHelper {
     }
 
     private void detectRomSet(Path folder) {
-        for (Map.Entry<String, Set<RomInfo>> e : romSets.entrySet()) {
+        for (Map.Entry<RomSet, Set<RomInfo>> e : romSets.entrySet()) {
             LOG.info("Attempting to load: {}", e.getKey());
             if (loadRomSet(folder, e)) {
-                romSetName = e.getKey();
+                romSet = e.getKey();
+                romSetName = romSet.name();
                 romSetFound = true;
                 break;
             }
@@ -117,7 +127,7 @@ public class RomHelper {
         return romSetName;
     }
 
-    private boolean loadRomSet(Path folder, Map.Entry<String, Set<RomInfo>> entry) {
+    private boolean loadRomSet(Path folder, Map.Entry<RomSet, Set<RomInfo>> entry) {
         boolean ok = true;
         try {
             for (RomInfo r : entry.getValue()) {
@@ -145,6 +155,10 @@ public class RomHelper {
             ok = false;
         }
         return ok;
+    }
+
+    public RomSet getRomSet() {
+        return romSet;
     }
 
     public byte[] getCrom() {
@@ -202,11 +216,8 @@ public class RomHelper {
         }
     }
 
-    public static void main(String[] args) {
-        for (Map.Entry<String, Set<RomInfo>> entry : romSets.entrySet()) {
-            String s = entry.getKey() + "\n";
-            s += entry.getValue().stream().map(RomInfo::toString).collect(Collectors.joining("\n"));
-            System.out.println(s);
-        }
+    public enum RomSet {
+        PAC_MAN,
+        PUCK_MAN
     }
 }

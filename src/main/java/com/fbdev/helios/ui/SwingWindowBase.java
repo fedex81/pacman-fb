@@ -511,10 +511,10 @@ public abstract class SwingWindowBase implements DisplayWindow {
 
         menu.add(loadRomItem);
         menu.add(closeRomItem);
-//        menu.add(loadStateItem);
-//        menu.add(saveStateItem);
-//        menu.add(quickLoadStateItem);
-//        menu.add(quickSaveStateItem);
+        menu.add(loadStateItem);
+        menu.add(saveStateItem);
+        menu.add(quickLoadStateItem);
+        menu.add(quickSaveStateItem);
         menu.add(exitItem);
         helpMenu.add(aboutItem);
         helpMenu.add(keyBindingsItem);
