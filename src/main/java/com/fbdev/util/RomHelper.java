@@ -46,7 +46,7 @@ public class RomHelper {
 
     private final static Logger LOG = LogManager.getLogger(RomHelper.class.getSimpleName());
 
-    public static final String ROMS_FOLDER = "./data";
+    public static final String ROMS_FOLDER = System.getProperty("pm.rom.set.folder", "./data");
 
     private static final Set<RomInfo> pacmanSet = ImmutableSet.<RomInfo>builder().
             add(RomInfo.of("pacman.6e", "e87e059c5be45753f7e9f33dff851f16d6751181", 0, 0x1000, CPU)).
