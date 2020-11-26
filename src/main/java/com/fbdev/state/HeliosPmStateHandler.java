@@ -66,13 +66,10 @@ public interface HeliosPmStateHandler extends BaseStateHandler {
     default void processState(Z80Provider z80, SystemBus bus) {
         if (getType() == Type.LOAD) {
             loadZ80(z80, bus);
-//            loadVdp(vdp, mem, bus);
             loadMemory(bus);
-            bus.init();
             LOG.info("Savestate loaded from: {}", getFileName());
         } else {
             saveZ80(z80, bus);
-//            saveVdp(vdp, mem, bus);
             saveMemory(bus);
         }
     }

@@ -40,13 +40,14 @@ public class PmStateHandler implements HeliosPmStateHandler {
 
     private static final String MAGIC_WORD_STR = "PACMAN-FB";
     private static final byte[] MAGIC_WORD = MAGIC_WORD_STR.getBytes();
-    private static final int Z80_REG_lEN = 25;
+    private static final int Z80_REG_lEN = 26;
     private static final int Z80_MISC_LEN = 27;
     private static final int VDP_MISC_LEN = 20;
+    private static final int SHA1_HASH_CHARS_LEN = 40; //20 bytes or 40 hex chars
     private final static String fileExtension = "pms";
     private final static int FIXED_SIZE_LIMIT = 0x1200;
 
-    private static final PmSavestateVersion DEFAULT_SAVE_VERSION = PmSavestateVersion.VER_1;
+    private static final PmSavestateVersion CURRENT_SAVE_VERSION = PmSavestateVersion.VER_1;
 
     private ByteBuffer buffer;
     private int version;
@@ -72,14 +73,14 @@ public class PmStateHandler implements HeliosPmStateHandler {
         h.buffer = ByteBuffer.allocate(FIXED_SIZE_LIMIT);
         //file type
         h.buffer.put(MAGIC_WORD);
-        h.buffer.put((byte) DEFAULT_SAVE_VERSION.getVersion());
-//        h.buffer.put(romSet.name().getBytes()); //TODO
+        h.buffer.put((byte) CURRENT_SAVE_VERSION.getVersion());
+        h.buffer.put(RomHelper.getSha1Hash(romSet).getBytes());
 
         h.buffer.put(FIXED_SIZE_LIMIT - 3, (byte) 'E');
         h.buffer.put(FIXED_SIZE_LIMIT - 2, (byte) 'O');
         h.buffer.put(FIXED_SIZE_LIMIT - 1, (byte) 'F');
 
-        h.version = DEFAULT_SAVE_VERSION.getVersion();
+        h.version = CURRENT_SAVE_VERSION.getVersion();
         h.romSet = romSet;
 
         h.fileName = handleFileExtension(fileName);
@@ -93,22 +94,6 @@ public class PmStateHandler implements HeliosPmStateHandler {
 
     private static void skip(ByteBuffer buf, int len) {
         buf.position(buf.position() + len);
-    }
-
-    private static void loadMappers(ByteBuffer buffer, SystemBus bus) {
-//        bus.write(0xFFFC, buffer.get(), Size.BYTE);
-//        bus.write(0xFFFD, buffer.get(), Size.BYTE);
-//        bus.write(0xFFFE, buffer.get(), Size.BYTE);
-//        bus.write(0xFFFF, buffer.get(), Size.BYTE);
-    }
-
-    private static void saveMappers(ByteBuffer buffer, SystemBus bus) {
-//        SmsBus smsbus = (SmsBus) bus;
-//        int[] frameReg = smsbus.getFrameReg();
-//        int control = smsbus.getMapperControl();
-//        LOG.info("mapperControl: {}, frameReg: {}", control, Arrays.toString(frameReg));
-//        buffer.put((byte) (control & 0xFF));
-//        buffer.put(Util.unsignedToByteArray(frameReg));
     }
 
     //2 bytes for a 16 bit int
@@ -126,6 +111,20 @@ public class PmStateHandler implements HeliosPmStateHandler {
         }
         version = buffer.get();
         pmVersion = PmSavestateVersion.parseVersion(version);
+        if (pmVersion != CURRENT_SAVE_VERSION) {
+            LOG.error("Unable to handle savestate version: {}", CURRENT_SAVE_VERSION);
+            return null;
+        }
+        byte[] sha1Chars = new byte[SHA1_HASH_CHARS_LEN];
+        buffer.get(sha1Chars);
+        String fileHash = new String(sha1Chars);
+        String currentHash = RomHelper.getSha1Hash(romSet);
+        if (!currentHash.equalsIgnoreCase(fileHash)) {
+            LOG.error("Unable to handle savestate {}, current romSet {}\n with sha1hash: {}\n file sha1Hash: {}",
+                    fileName, romSet, currentHash, fileHash);
+            LOG.error("Known sha1Hashes: {}", RomHelper.getRomSetToSha1());
+            return null;
+        }
         return this;
     }
 
@@ -144,7 +143,6 @@ public class PmStateHandler implements HeliosPmStateHandler {
         z80State.setRegBCx(Util.getUInt32LE(data.get(), data.get()));
         z80State.setRegDEx(Util.getUInt32LE(data.get(), data.get()));
         z80State.setRegHLx(Util.getUInt32LE(data.get(), data.get()));
-
 
         int val = data.get();
         Z80.IntMode im = Z80Helper.parseIntMode((val >> 1) & 3);
@@ -184,6 +182,7 @@ public class PmStateHandler implements HeliosPmStateHandler {
         buffer.get(bus.getRam());
         buffer.get(bus.getIoReg());
         bus.writeIoPort(0, buffer.getInt()); //reload addressOnBus
+        bus.init();
     }
 
     @Override
@@ -231,6 +230,4 @@ public class PmStateHandler implements HeliosPmStateHandler {
             return version;
         }
     }
-
-    ;
 }

@@ -48,9 +48,6 @@ public class RomHelper {
 
     public static final String ROMS_FOLDER = "./data";
 
-    private final static Map<RomSet, Set<RomInfo>> romSets = ImmutableMap.of(
-            RomSet.PUCK_MAN, puckmanSet, RomSet.PAC_MAN, pacmanSet);
-
     private static final Set<RomInfo> pacmanSet = ImmutableSet.<RomInfo>builder().
             add(RomInfo.of("pacman.6e", "e87e059c5be45753f7e9f33dff851f16d6751181", 0, 0x1000, CPU)).
             add(RomInfo.of("pacman.6f", "674d3a7f00d8be5e38b1fdc208ebef5a92d38329", 0x1000, 0x2000, CPU)).
@@ -84,17 +81,20 @@ public class RomHelper {
             add(RomInfo.of("pm1_chg3.5f", "be933e691df4dbe7d12123913c3b7b7b585b7a35", 0, 0x800, RomType.SPRITE)).
             add(RomInfo.of("pm1_chg4.5j", "53771c573051db43e7185b1d188533056290a620", 0x800, 0x1000, RomType.SPRITE)).
             build();
-    private RomSet romSet;
 
+    private final static Map<RomSet, Set<RomInfo>> romSets = ImmutableMap.of(
+            RomSet.PUCK_MAN, puckmanSet, RomSet.PAC_MAN, pacmanSet);
+    private final static Map<RomSet, String> romSetToSha1 = new HashMap<>();
+
+    private RomSet romSet;
     private final Map<RomType, ByteBuffer> romTypeMap = new HashMap<>();
     private String romSetName = "";
     private boolean romSetFound = false;
 
-    public static void main(String[] args) {
-        for (Map.Entry<RomSet, Set<RomInfo>> entry : romSets.entrySet()) {
-            String s = entry.getKey() + "\n";
-            s += entry.getValue().stream().map(RomInfo::toString).collect(Collectors.joining("\n"));
-            System.out.println(s);
+    static {
+        for (Map.Entry<RomSet, Set<RomInfo>> e : romSets.entrySet()) {
+            String val = e.getValue().stream().map(r -> r.sha1).collect(Collectors.joining());
+            romSetToSha1.put(e.getKey(), Util.sha1(val.getBytes()));
         }
     }
 
@@ -159,6 +159,14 @@ public class RomHelper {
 
     public RomSet getRomSet() {
         return romSet;
+    }
+
+    public static String getSha1Hash(RomSet romSet) {
+        return romSetToSha1.get(romSet);
+    }
+
+    public static Map<RomSet, String> getRomSetToSha1() {
+        return romSetToSha1;
     }
 
     public byte[] getCrom() {
