@@ -168,8 +168,10 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
 
     private void handleLoadState(Path file) {
         stateHandler = createStateHandler(file, BaseStateHandler.Type.LOAD);
-        LOG.info("Savestate action detected: {} , using file: {}",
-                stateHandler.getType(), stateHandler.getFileName());
+        if (stateHandler != null) {
+            LOG.info("Savestate action detected: {} , using file: {}",
+                    stateHandler.getType(), stateHandler.getFileName());
+        }
         this.saveStateFlag = true;
     }
 

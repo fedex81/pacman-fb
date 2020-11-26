@@ -78,6 +78,24 @@ public class FileUtil {
         return lines;
     }
 
+    public static byte[] readFileSafe(Path file) {
+        byte[] rom = new byte[0];
+        try {
+            rom = Files.readAllBytes(file);
+        } catch (IOException e) {
+            LOG.error("Unable to load file: {}", file.getFileName());
+        }
+        return rom;
+    }
+
+    public static void writeFileSafe(Path file, byte[] data) {
+        try {
+            Files.write(file, data);
+        } catch (IOException e) {
+            LOG.error("Unable to write file {}, #data {}", file.toAbsolutePath().toString(), data.length);
+        }
+    }
+
     private static String getCurrentClasspath() {
         Class<?> clazz = FileUtil.class;
         String className = clazz.getSimpleName() + ".class";

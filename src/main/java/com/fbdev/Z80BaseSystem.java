@@ -29,6 +29,8 @@ import com.fbdev.helios.z80.Z80CoreWrapper;
 import com.fbdev.helios.z80.Z80Provider;
 import com.fbdev.input.PacManPad;
 import com.fbdev.sound.Sound;
+import com.fbdev.state.HeliosPmStateHandler;
+import com.fbdev.state.PmStateHandler;
 import com.fbdev.util.RomHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +39,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Random;
 
-public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
+public class Z80BaseSystem extends BaseSystem<SystemBus, HeliosPmStateHandler> {
 
     private static final Logger LOG = LogManager.getLogger(Z80BaseSystem.class.getSimpleName());
     private static final int FRAMES_HZ = 60;
@@ -59,7 +61,7 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
     public void init() {
         joypad = new PacManPad();
         bus = new SystemBus();
-        stateHandler = BaseStateHandler.EMPTY_STATE;
+        stateHandler = HeliosPmStateHandler.EMPTY_STATE;
         sound = SoundProvider.NO_SOUND;
         vdp = null;
 //        inputProvider = InputProvider.createInstance(joypad);
@@ -69,9 +71,10 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
     }
 
     @Override
-    protected BaseStateHandler createStateHandler(Path file, BaseStateHandler.Type type) {
-        LOG.error("Not implemented!");
-        return stateHandler;
+    protected HeliosPmStateHandler createStateHandler(Path file, BaseStateHandler.Type type) {
+        String fileName = file.toAbsolutePath().toString();
+        return type == BaseStateHandler.Type.LOAD ? PmStateHandler.createLoadInstance(fileName, romHelper.getRomSet()) :
+                PmStateHandler.createSaveInstance(fileName, romHelper.getRomSet());
     }
 
     Random rnd = new Random();
@@ -150,7 +153,14 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, BaseStateHandler> {
 
     @Override
     protected void processSaveState() {
-        //Not implemented
+        if (saveStateFlag) {
+            stateHandler.processState(z80, bus);
+            if (stateHandler.getType() == BaseStateHandler.Type.SAVE) {
+                stateHandler.storeData();
+            }
+            stateHandler = HeliosPmStateHandler.EMPTY_STATE;
+            saveStateFlag = false;
+        }
     }
 
     @Override

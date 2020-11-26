@@ -50,6 +50,9 @@ public class SystemBus implements BaseBusProvider, IoProvider {
     private final static int IO_START = 0x5000;
     private final static int IO_END = IO_START + 0x100;
 
+    private final static int IO_SPRITE_START = 0x5060;
+    private final static int IO_SPRITE_END = 0x5070;
+
     public final static int PALETTE_RAM_OFFSET = 0x400;
 
     private boolean enableInt = false, soundEnabled = false;
@@ -227,5 +230,25 @@ public class SystemBus implements BaseBusProvider, IoProvider {
 
     public byte[] getRam() {
         return ram;
+    }
+
+    public byte[] getIoReg() {
+        return ioReg;
+    }
+
+
+    @Override
+    public void init() {
+        //after saveState loading, trigger side-effects
+        writeIoHandler(0, ioReg[0], Size.BYTE); //enableInt
+        writeIoHandler(1, ioReg[1], Size.BYTE); //soundEnabled
+
+        //update vdp
+        for (int i = IO_SPRITE_START; i < IO_SPRITE_END; i++) {
+            vdpProvider.updateSpriteContext(i, ioReg[i & 0xFF]);
+        }
+        for (int i = SPRITE_RAM_START; i < RAM_END; i++) {
+            vdpProvider.updateSpriteContext(i, ram[i & 0xFFF]);
+        }
     }
 }
