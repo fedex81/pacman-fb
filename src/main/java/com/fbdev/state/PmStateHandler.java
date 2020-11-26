@@ -22,6 +22,7 @@ package com.fbdev.state;
 import com.fbdev.bus.SystemBus;
 import com.fbdev.helios.util.FileUtil;
 import com.fbdev.helios.util.Util;
+import com.fbdev.helios.z80.Z80Helper;
 import com.fbdev.helios.z80.Z80Provider;
 import com.fbdev.util.RomHelper;
 import org.apache.logging.log4j.LogManager;
@@ -134,6 +135,7 @@ public class PmStateHandler implements HeliosPmStateHandler {
         z80State.setRegBC(Util.getUInt32LE(data.get(), data.get()));
         z80State.setRegDE(Util.getUInt32LE(data.get(), data.get()));
         z80State.setRegHL(Util.getUInt32LE(data.get(), data.get()));
+        z80State.setRegI(data.get() & 0xFF);
         z80State.setRegIX(Util.getUInt32LE(data.get(), data.get()));
         z80State.setRegIY(Util.getUInt32LE(data.get(), data.get()));
         z80State.setRegPC(Util.getUInt32LE(data.get(), data.get()));
@@ -143,8 +145,9 @@ public class PmStateHandler implements HeliosPmStateHandler {
         z80State.setRegDEx(Util.getUInt32LE(data.get(), data.get()));
         z80State.setRegHLx(Util.getUInt32LE(data.get(), data.get()));
 
+
         int val = data.get();
-        Z80.IntMode im = ((val & 2) > 0) ? Z80.IntMode.IM1 : Z80.IntMode.IM0;
+        Z80.IntMode im = Z80Helper.parseIntMode((val >> 1) & 3);
         z80State.setIM(im);
         z80State.setIFF1((val & 1) > 0);
         z80State.setIFF2((val & 8) > 0);
@@ -153,42 +156,6 @@ public class PmStateHandler implements HeliosPmStateHandler {
         skip(data, Z80_MISC_LEN);
         return z80State;
     }
-
-//    @Override
-//    public void loadVdp(BaseVdpProvider vdp, IMemoryProvider memory, SmsBus bus) {
-//        SmsVdp smsVdp = (SmsVdp) vdp;
-//        IntStream.range(0, SmsVdp.VDP_REGISTERS_SIZE).forEach(i -> smsVdp.registerWrite(i, buffer.get() & 0xFF));
-//        int toSkip = VDP_MISC_LEN - 3;
-//        String helString = Util.toStringValue(buffer.get(), buffer.get(), buffer.get());
-//        if ("HEL".equals(helString)) {
-//            vdpState[0] = buffer.getInt();
-//            vdpState[1] = buffer.getInt();
-//            vdpState[2] = buffer.getInt();
-//            smsVdp.setStateSimple(vdpState);
-//            toSkip = VDP_MISC_LEN - (vdpState.length * 4 + 3);
-//        }
-//        skip(buffer, toSkip);
-//        loadMappers(buffer, bus);
-//        if (version >= 0xD) {
-//            int vdpLine = Util.getUInt32LE(buffer.get(), buffer.get());
-//            LOG.info("vdpLine: {}", vdpLine);
-//        }
-//    }
-
-
-//    @Override
-//    public void saveVdp(BaseVdpProvider vdp, IMemoryProvider memory, Z80BusProvider bus) {
-//        IntStream.range(0, SmsVdp.VDP_REGISTERS_SIZE).forEach(i -> buffer.put((byte) vdp.getRegisterData(i)));
-//        SmsVdp smsVdp = (SmsVdp) vdp;
-//        smsVdp.getStateSimple(vdpState);
-//        buffer.put((byte) 'H').put((byte) 'E').put((byte) 'L');
-//        buffer.putInt(vdpState[0]).putInt(vdpState[1]).putInt(vdpState[2]);
-//        skip(buffer, VDP_MISC_LEN - (vdpState.length * 4 + 3));
-//        saveMappers(buffer, bus);
-//        buffer.put((byte) 0); //vdpLine
-//        buffer.put((byte) 0); //vdpLine
-//    }
-
 
     @Override
     public void loadZ80(Z80Provider z80, SystemBus bus) {
@@ -200,9 +167,9 @@ public class PmStateHandler implements HeliosPmStateHandler {
     public void saveZ80(Z80Provider z80, SystemBus bus) {
         Z80State s = z80.getZ80State();
         setData(buffer, s.getRegF(), s.getRegA(), s.getRegC(), s.getRegB(),
-                s.getRegE(), s.getRegD(), s.getRegL(), s.getRegH());
+                s.getRegE(), s.getRegD(), s.getRegL(), s.getRegH(), s.getRegI());
         setData(buffer, s.getRegIX() & 0xFF, s.getRegIX() >> 8, s.getRegIY() & 0xFF,
-                s.getRegIX() >> 8, s.getRegPC() & 0xFF, s.getRegPC() >> 8, s.getRegSP() & 0xFF,
+                s.getRegIY() >> 8, s.getRegPC() & 0xFF, s.getRegPC() >> 8, s.getRegSP() & 0xFF,
                 s.getRegSP() >> 8);
         setData(buffer, s.getRegFx(), s.getRegAx(), s.getRegCx(), s.getRegBx(), s.getRegEx(),
                 s.getRegDx(), s.getRegLx(), s.getRegHx());
