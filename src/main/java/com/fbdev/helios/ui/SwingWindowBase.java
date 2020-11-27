@@ -26,6 +26,7 @@ import com.fbdev.helios.model.DisplayWindow;
 import com.fbdev.helios.model.SystemProvider;
 import com.fbdev.helios.model.SystemProvider.SystemEvent;
 import com.fbdev.helios.util.*;
+import com.fbdev.state.PmStateHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.*;
 
 import static com.fbdev.helios.model.SystemProvider.SystemEvent.*;
+import static com.fbdev.helios.ui.SwingWindowBase.FileResourceType.ROM;
 import static com.fbdev.helios.ui.SwingWindowBase.FileResourceType.SAVE_STATE_RES;
 import static com.fbdev.helios.util.ScreenSizeHelper.*;
 
@@ -220,8 +222,12 @@ public abstract class SwingWindowBase implements DisplayWindow {
         int dialogType = load ? JFileChooser.OPEN_DIALOG : JFileChooser.SAVE_DIALOG;
         Optional<File> res = Optional.empty();
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setFileFilter(Util.folderFilter);
+        if (type == ROM) {
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            fileChooser.setFileFilter(Util.folderFilter);
+        } else {
+            fileChooser.setFileFilter(PmStateHandler.SAVE_STATE_FILTER);
+        }
         fileChooser.setDialogType(dialogType);
         int result = fileChooser.showDialog(parent, null);
         if (result == JFileChooser.APPROVE_OPTION) {

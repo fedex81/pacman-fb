@@ -30,6 +30,8 @@ import org.apache.logging.log4j.Logger;
 import z80core.Z80;
 import z80core.Z80State;
 
+import javax.swing.filechooser.FileFilter;
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -230,4 +232,17 @@ public class PmStateHandler implements HeliosPmStateHandler {
             return version;
         }
     }
+
+    public static FileFilter SAVE_STATE_FILTER = new FileFilter() {
+        @Override
+        public String getDescription() {
+            return "state files";
+        }
+
+        @Override
+        public boolean accept(File f) {
+            String name = f.getName().toLowerCase();
+            return f.isDirectory() || f.getName().toLowerCase().contains("." + fileExtension);
+        }
+    };
 }
