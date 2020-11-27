@@ -78,8 +78,8 @@ public class Video implements BaseVdpProvider {
         final int lines = getVideoMode().getPixelH();
         for (int i = 0; i < NUM_SPRITES_SCREEN; i++) {
             SpriteContext sc = spriteContexts[i];
-            if (sc.xpos < 16 || sc.xpos > 239 || sc.ypos < 16 || sc.ypos > 255) {
-                continue; //TODO refine
+            if (sc.xpos < SPRITE_W_PX || sc.ypos < SPRITE_H_PX) {
+                continue;
             }
             int h28x_br = sc.xpos - SPRITE_W_PX;
             int h28x_tl = linePx - 1 - h28x_br;
@@ -91,11 +91,16 @@ public class Video implements BaseVdpProvider {
             int[] paletteCromIdx = paletteToColorsIdx[sc.palette];
             int startIdx = screenPos, spriteLinePx = 0;
             final int blackRgb = 0; //no alpha
+            //no horizontal wrapping, sprite gets truncated
+            final int firstSpriteLinePx = Math.max(SPRITE_W_PX - (255 - sc.xpos), 0);
+            final int lastSpriteLinePx = Math.min(sc.xpos - SPRITE_W_PX, SPRITE_W_PX);
 
             for (int j = 0; j < SPRITE_PX; j++) {
-                int rgbPixel = colors[paletteCromIdx[paletteIndexes[j]]].getRGB();
-                if (rgbPixel != blackRgb) { //skip transparent px
-                    render[startIdx + spriteLinePx] = rgbPixel;
+                if (spriteLinePx >= firstSpriteLinePx && spriteLinePx < lastSpriteLinePx) {
+                    int rgbPixel = colors[paletteCromIdx[paletteIndexes[j]]].getRGB();
+                    if (rgbPixel != blackRgb) { //skip transparent px
+                        render[startIdx + spriteLinePx] = rgbPixel;
+                    }
                 }
                 spriteLinePx++;
                 if ((j + 1) % SPRITE_W_PX == 0) {
