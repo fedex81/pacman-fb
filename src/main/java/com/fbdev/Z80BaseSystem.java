@@ -28,6 +28,7 @@ import com.fbdev.helios.sound.SoundProvider;
 import com.fbdev.helios.z80.Z80CoreWrapper;
 import com.fbdev.helios.z80.Z80Provider;
 import com.fbdev.input.PacManPad;
+import com.fbdev.sound.AbstractSoundManager;
 import com.fbdev.sound.Sound;
 import com.fbdev.state.HeliosPmStateHandler;
 import com.fbdev.state.PmStateHandler;
@@ -129,7 +130,8 @@ public class Z80BaseSystem extends BaseSystem<SystemBus, HeliosPmStateHandler> {
     protected void initAfterRomLoad() {
         bus.init(romHelper);
         z80 = Z80CoreWrapper.createInstance(bus);
-        sound = new Sound(romHelper, bus);
+        Sound pmSound = new Sound(romHelper, bus);
+        sound = AbstractSoundManager.createSoundProvider(pmSound);
         vdp = new Video(romHelper, bus.getRam(), joypad);
         bus.attach(vdp);
         resetAfterRomLoad();

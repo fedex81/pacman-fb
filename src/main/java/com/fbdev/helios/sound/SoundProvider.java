@@ -20,14 +20,15 @@
 package com.fbdev.helios.sound;
 
 import com.fbdev.helios.BaseVdpProvider;
+import com.fbdev.helios.model.Device;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public interface SoundProvider extends BaseVdpProvider.VdpEventListener {
+public interface SoundProvider extends BaseVdpProvider.VdpEventListener, Device {
     Logger LOG = LogManager.getLogger(SoundProvider.class.getSimpleName());
 
     //ignored, we only support 48khz
-    int SAMPLE_RATE_HZ = Integer.parseInt(System.getProperty("audio.sample.rate.hz", "44100"));
+    int SAMPLE_RATE_HZ = 48000;
 
     int DEFAULT_BUFFER_SIZE_MS = 25;
     int AUDIO_BUFFER_LEN_MS = Integer.parseInt(System.getProperty("audio.buffer.length.ms",

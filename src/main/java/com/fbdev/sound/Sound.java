@@ -67,26 +67,42 @@ public class Sound implements SoundProvider {
 
     private static final int FRAMES_PER_SECOND = 60;
     private static final int SOURCE_SAMPLE_RATE = 96000;
-    private static final int OUTPUT_SAMPLE_RATE = 48000;
+    private static final int OUTPUT_SAMPLE_RATE = SoundProvider.SAMPLE_RATE_HZ;
     final int srcFrameSize = SOURCE_SAMPLE_RATE / FRAMES_PER_SECOND;// pacman sound runs at 96kHz
     final int dstFrameSize = OUTPUT_SAMPLE_RATE / FRAMES_PER_SECOND;// emulator sound
-    final byte[] outputBuffer = new byte[dstFrameSize];
-    final int[] output96 = new int[srcFrameSize];
+    //true -> generate sound every frame and play it
+    private final boolean playMode = false;
+
     IoProvider io;
     byte[] rom;
     VoiceParameters voiceParameters;
     boolean mute;
     SourceDataLine line;
-    byte[] frame1 = new byte[srcFrameSize];
-    byte[] frame2 = new byte[srcFrameSize];
-    byte[] frame3 = new byte[srcFrameSize];
+    volatile byte[] outputBuffer = new byte[dstFrameSize];
+    byte[] frame1;
+    byte[] frame2;
+    byte[] frame3;
+    int[] output96;
 
     public Sound(RomHelper r, IoProvider io) {
         this.io = io;
         rom = r.getSoundRom();
         voiceParameters = new VoiceParameters();
-        openSound();
+        init();
+        if (playMode) {
+            openSound();
+        }
     }
+
+    @Override
+    public void init() {
+        int size = Math.max(srcFrameSize, JalSoundManager.bufferSize << 1);
+        frame1 = new byte[size];
+        frame2 = new byte[size];
+        frame3 = new byte[size];
+        output96 = new int[size];
+    }
+
 
     @Override
     public void close() {
@@ -127,21 +143,29 @@ public class Sound implements SoundProvider {
 
     @Override
     public void onNewFrame() {
-        playSound();
+        if (playMode) {
+            playSound();
+        }
     }
 
-    // generate and play next frame (1/60th of a second) of sound data
-    private void playSound() {
-        if (!io.isSoundEnabled() || mute)
-            return;
+    public int[] generateSoundMonoFloat48khz(int frameSize) {
+        return voiceParameters.generateSoundFrame(frameSize << 1); //generate at 96khz, play at 48khz
+    }
 
+    private void generateSound() {
         int[] buffer = voiceParameters.generateSoundFrame(srcFrameSize);
         // quick resample 96kHz buffer -> 48khz
         for (int i = 0, offset = 0; i < dstFrameSize; i++, offset += 2) {
             int val = (buffer[offset] + buffer[offset + 1]) >> 1;
             outputBuffer[i] = (byte) (val & 0xFF);
         }
+    }
 
+    // generate and play next frame (1/60th of a second) of sound data
+    private void playSound() {
+        if (!io.isSoundEnabled() || mute)
+            return;
+        generateSound();
         // write data to sound output
         line.write(outputBuffer, 0, outputBuffer.length);
     }

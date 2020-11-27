@@ -243,7 +243,7 @@ public abstract class BaseSystem<BUS extends BaseBusProvider, STH extends BaseSt
             LOG.info("Rom thread cancel");
             emuFrame.resetScreen();
             telemetry.reset();
-//            sound.reset();
+            sound.reset();
 //            bus.closeRom();
             Optional.ofNullable(vdp).ifPresent(Device::reset);
         }
