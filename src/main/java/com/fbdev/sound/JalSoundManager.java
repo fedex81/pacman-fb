@@ -43,9 +43,20 @@ public class JalSoundManager extends AbstractSoundManager implements AudioClient
     private static final Logger LOG = LogManager.getLogger(JalSoundManager.class.getSimpleName());
     private static final String lib = "JavaSound"; // or "JACK";
 
+    private static final int JAL_TIMING_MODE = Integer.parseInt(System.getProperty("helios.jal.timing.mode", "1"));
+
+    private JSTimingMode timingMode = JSTimingMode.FramePosition;
+
     @Override
     public void init() {
         super.init();
+        for (JSTimingMode mode : JSTimingMode.values()) {
+            if (mode.ordinal() == JAL_TIMING_MODE) {
+                timingMode = mode;
+                break;
+            }
+        }
+        LOG.info("Using timing mode: {}", timingMode);
         startAudio();
     }
 
@@ -70,7 +81,7 @@ public class JalSoundManager extends AbstractSoundManager implements AudioClient
                 // extensions
                 new Object[]{
                         new ClientID("JalSoundManager"),
-                        JSTimingMode.FramePosition,
+                        timingMode,
                         Connections.OUTPUT
                 });
         try {
